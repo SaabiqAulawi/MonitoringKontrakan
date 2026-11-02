@@ -110,8 +110,10 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $tenants = $stmt->fetchAll();
 
-$timelineTenants = $pdo->query("SELECT room_number, name, start_date, due_date, payment_status
-    FROM tenants ORDER BY start_date, room_number, name")->fetchAll();
+$timelineTenants = $pdo->query("SELECT t.room_number, t.name, u.address, t.start_date, t.due_date, t.payment_status
+    FROM tenants t
+    LEFT JOIN units u ON u.id = t.unit_id
+    ORDER BY t.start_date, t.room_number, t.name")->fetchAll();
 $timelineStart = new DateTime('first day of this month');
 $timelineEnd = clone $timelineStart;
 $timelineEnd->modify('+12 months');
@@ -243,8 +245,8 @@ for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
             <div class="text-center text-muted py-4">Belum ada data penghuni untuk ditampilkan.</div>
         <?php else: ?>
             <div class="timeline-scroll">
-                <div class="timeline-grid" style="--timeline-columns: <?= $timelineMonthCount ?>;">
-                    <div class="timeline-label timeline-header">Unit / Penghuni</div>
+                <div class="timeline-grid" style="--timeline-columns: <?= $timelineMonthCount ?>; --timeline-track-width: <?= $timelineMonthCount * 110 ?>px;">
+                    <div class="timeline-label timeline-header">Unit / Penghuni / Alamat</div>
                     <div class="timeline-months">
                         <?php foreach ($timelineMonths as $month): ?>
                             <div class="timeline-month"><?= htmlspecialchars(formatTanggalIndonesia($month->format('Y-m-01'))) ?></div>
@@ -271,6 +273,7 @@ for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
                         <div class="timeline-label">
                             <strong><?= htmlspecialchars($timelineTenant['room_number']) ?></strong>
                             <small><?= htmlspecialchars($timelineTenant['name']) ?></small>
+                            <small title="<?= htmlspecialchars($timelineTenant['address'] ?? '') ?>"><?= htmlspecialchars($timelineTenant['address'] ?? 'Alamat belum tersedia') ?></small>
                         </div>
                         <div class="timeline-track">
                             <?php foreach ($timelineMonths as $month): ?>

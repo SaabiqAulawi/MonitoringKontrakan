@@ -126,8 +126,8 @@ function formatTanggalIndonesia(string $date): string {
         }
         .timeline-grid {
             display: grid;
-            grid-template-columns: 190px minmax(calc(var(--timeline-columns) * 70px), 1fr);
-            min-width: calc(190px + var(--timeline-columns) * 70px);
+            grid-template-columns: 240px var(--timeline-track-width);
+            width: calc(240px + var(--timeline-track-width));
         }
         .timeline-label {
             min-height: 54px;
@@ -154,12 +154,12 @@ function formatTanggalIndonesia(string $date): string {
         .timeline-months,
         .timeline-track {
             display: grid;
-            grid-template-columns: repeat(var(--timeline-columns), minmax(70px, 1fr));
+            grid-template-columns: repeat(var(--timeline-columns), 110px);
             position: relative;
         }
         .timeline-month {
             min-height: 48px;
-            padding: 0.65rem 0.5rem;
+            padding: 0.65rem 0.35rem;
             border-left: 1px solid #e2e8f0;
             border-bottom: 1px solid #e2e8f0;
             color: #475569;
