@@ -290,7 +290,7 @@ function formatTanggalIndonesia(string $date): string {
                     <button type="submit" class="btn btn-outline-light btn-sm" title="Keluar"><i class="fa-solid fa-right-from-bracket"></i></button>
                 </form>
                 <?php if ($urgentCount > 0): ?>
-                    <a href="index.php?filter=urgent" class="btn btn-warning btn-sm rounded-pill fw-bold px-3 text-dark shadow-sm">
+                    <a href="index.php?filter=urgent#payment-monitoring" class="btn btn-warning btn-sm rounded-pill fw-bold px-3 text-dark shadow-sm">
                         <i class="fa-solid fa-bell me-1 fa-shake"></i> <?= $urgentCount ?> Jatuh Tempo / H-2
                     </a>
                 <?php else: ?>

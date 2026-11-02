@@ -159,7 +159,7 @@ for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
         </div>
     </div>
     <div>
-        <a href="index.php?filter=urgent" class="btn btn-warning btn-sm fw-bold shadow-sm px-3">
+        <a href="index.php?filter=urgent#payment-monitoring" class="btn btn-warning btn-sm fw-bold shadow-sm px-3">
             Lihat <?= $urgentCount ?> Tagihan
         </a>
     </div>
@@ -312,7 +312,7 @@ for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
                     <a href="index.php" class="btn <?= $filter === 'all' ? 'btn-primary' : 'btn-outline-secondary' ?>">
                         Semua (<?= $totalPenghuni ?>)
                     </a>
-                    <a href="index.php?filter=urgent" class="btn <?= $filter === 'urgent' ? 'btn-warning text-dark fw-bold' : 'btn-outline-warning text-dark' ?>">
+                    <a href="index.php?filter=urgent#payment-monitoring" class="btn <?= $filter === 'urgent' ? 'btn-warning text-dark fw-bold' : 'btn-outline-warning text-dark' ?>">
                         <i class="fa-solid fa-bell me-1"></i> Perlu Ditagih (<?= $urgentCount ?>)
                     </a>
                     <a href="index.php?filter=overdue" class="btn <?= $filter === 'overdue' ? 'btn-danger' : 'btn-outline-danger' ?>">
@@ -353,7 +353,7 @@ for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
 </div>
 
 <!-- Tabel Monitoring Tenggat Pembayaran -->
-<div class="card shadow-sm">
+<div class="card shadow-sm" id="payment-monitoring">
     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
         <div>
             <h5 class="mb-0 fw-bold">
