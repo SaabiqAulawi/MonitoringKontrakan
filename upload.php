@@ -58,7 +58,7 @@ function parseLegacyFormat(array $row, array $defaults): array {
         $data['identity_number'] = trim($parts[1]);
     } else {
         $data['name'] = $namaNikRaw;
-        $data['identity_number'] = 'ID-' . strtoupper(substr(md5($namaNikRaw . $alamatKost), 0, 10));
+        $data['identity_number'] = null;
     }
 
     $data['room_number'] = $alamatKost ?: ('Kamar ' . ($row[0] ?? '1'));
@@ -102,7 +102,7 @@ function parseTenantRow(array $row, array $headerMap, PDO $pdo): array {
     if (empty($data['name'])) $data['name'] = 'Tanpa Nama';
     if (empty($data['room_number'])) $data['room_number'] = 'Kamar 01';
     if (empty($data['identity_number'])) {
-        $data['identity_number'] = 'NIK-' . strtoupper(substr(md5($data['name'] . $data['room_number']), 0, 8));
+        $data['identity_number'] = null;
     }
     return $data;
 }
@@ -207,8 +207,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
                         $data = parseTenantRow($row, $headerMap, $pdo);
 
                         // 1. CEK IDENTITAS KE DATABASE (ANTI-DUPLIKASI)
-                        $stmtCheck->execute([$data['identity_number']]);
-                        $existing = $stmtCheck->fetch();
+                        $existing = false;
+                        if (!empty($data['identity_number'])) {
+                            $stmtCheck->execute([$data['identity_number']]);
+                            $existing = $stmtCheck->fetch();
+                        }
 
                         if ($existing) {
                             $skippedCount++;

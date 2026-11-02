@@ -20,7 +20,7 @@ try {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         room_number VARCHAR(100) NOT NULL,
         name VARCHAR(150) NOT NULL,
-        identity_number VARCHAR(50) UNIQUE NOT NULL,
+        identity_number VARCHAR(50) UNIQUE NULL,
         phone VARCHAR(30) NULL,
         ktp_address TEXT NULL,
         landlord_name VARCHAR(150) NULL,
@@ -44,6 +44,52 @@ try {
     }
     if (!in_array('unit_id', $colNames)) {
         $pdo->exec("ALTER TABLE tenants ADD COLUMN unit_id INTEGER NULL");
+    }
+    $identityColumn = null;
+    foreach ($cols as $column) {
+        if ($column['name'] === 'identity_number') {
+            $identityColumn = $column;
+            break;
+        }
+    }
+    if ($identityColumn && (int)$identityColumn['notnull'] === 1) {
+        $pdo->beginTransaction();
+        try {
+            $pdo->exec("CREATE TABLE tenants_migrating (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                room_number VARCHAR(100) NOT NULL,
+                name VARCHAR(150) NOT NULL,
+                identity_number VARCHAR(50) UNIQUE NULL,
+                phone VARCHAR(30) NULL,
+                ktp_address TEXT NULL,
+                landlord_name VARCHAR(150) NULL,
+                rent_price REAL NOT NULL DEFAULT 1000000,
+                paid_amount REAL DEFAULT 0,
+                rent_period VARCHAR(20) DEFAULT 'bulanan',
+                start_date DATE NOT NULL,
+                due_date DATE NOT NULL,
+                payment_status VARCHAR(20) DEFAULT 'belum_bayar',
+                last_paid_at DATETIME NULL,
+                notes TEXT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                unit_id INTEGER NULL
+            )");
+            $pdo->exec("INSERT INTO tenants_migrating
+                (id, room_number, name, identity_number, phone, ktp_address, landlord_name,
+                 rent_price, paid_amount, rent_period, start_date, due_date, payment_status,
+                 last_paid_at, notes, created_at, updated_at, unit_id)
+                SELECT id, room_number, name, NULLIF(identity_number, ''), phone, ktp_address,
+                 landlord_name, rent_price, paid_amount, rent_period, start_date, due_date,
+                 payment_status, last_paid_at, notes, created_at, updated_at, unit_id
+                FROM tenants");
+            $pdo->exec("DROP TABLE tenants");
+            $pdo->exec("ALTER TABLE tenants_migrating RENAME TO tenants");
+            $pdo->commit();
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
     }
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS units (

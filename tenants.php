@@ -33,7 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
     $unit = $unitStmt->fetch();
     $room = $unit ? $unit['unit_code'] : '';
     $name = trim($_POST['name'] ?? '');
-    $nik = trim($_POST['identity_number'] ?? '');
+    $nikInput = trim($_POST['identity_number'] ?? '');
+    $nik = $nikInput !== '' ? $nikInput : null;
     $phone = trim($_POST['phone'] ?? '');
     $ktpAddress = trim($_POST['ktp_address'] ?? '');
     $landlord = trim($_POST['landlord_name'] ?? '');
@@ -53,8 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
     }
     $notes = trim($_POST['notes'] ?? '');
 
-    if (!$unit || empty($name) || empty($nik)) {
-        $message = "Unit, nama, dan NIK/No. KTP wajib diisi!";
+    if (!$unit || empty($name)) {
+        $message = "Unit dan nama wajib diisi!";
         $alertType = "danger";
     } else {
         $stmtUnitTenant = $pdo->prepare('SELECT id FROM tenants WHERE unit_id = ? AND id != ?');
@@ -66,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
             // Edit: cek NIK apakah bentrok dengan tenant lain
             $stmtCek = $pdo->prepare("SELECT id FROM tenants WHERE identity_number = ? AND id != ?");
             $stmtCek->execute([$nik, $id]);
-            if ($stmtCek->fetch()) {
+            if ($nik !== null && $stmtCek->fetch()) {
                 $message = 'NIK <strong>' . htmlspecialchars($nik, ENT_QUOTES, 'UTF-8') . '</strong> sudah digunakan oleh penghuni lain!';
                 $alertType = "danger";
             } else {
@@ -82,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
             // Tambah baru: cek duplikasi NIK
             $stmtCek = $pdo->prepare("SELECT id FROM tenants WHERE identity_number = ?");
             $stmtCek->execute([$nik]);
-            if ($stmtCek->fetch()) {
+            if ($nik !== null && $stmtCek->fetch()) {
                 $message = 'NIK <strong>' . htmlspecialchars($nik, ENT_QUOTES, 'UTF-8') . '</strong> sudah terdaftar di sistem! Data tidak disimpan untuk menghindari duplikasi.';
                 $alertType = "warning";
             } else {
@@ -171,9 +172,9 @@ $tenants = $stmt->fetchAll();
                     </div>
 
                     <div class="mb-2">
-                        <label class="form-label small fw-bold">NIK / No. KTP (Unik) *</label>
-                        <input type="text" name="identity_number" class="form-control form-control-sm" placeholder="16 digit NIK..." value="<?= htmlspecialchars($editTenant['identity_number'] ?? '') ?>" required>
-                        <small class="text-muted" style="font-size: 0.7rem;">Digunakan untuk mencegah data ganda.</small>
+                        <label class="form-label small fw-bold">NIK / No. KTP (Opsional)</label>
+                        <input type="text" name="identity_number" class="form-control form-control-sm" placeholder="16 digit NIK jika ada..." value="<?= htmlspecialchars($editTenant['identity_number'] ?? '') ?>">
+                        <small class="text-muted" style="font-size: 0.7rem;">Jika diisi, digunakan untuk mencegah data ganda.</small>
                     </div>
 
                     <div class="mb-2">
@@ -286,7 +287,7 @@ $tenants = $stmt->fetchAll();
                             <td><span class="badge bg-dark fs-6"><?= htmlspecialchars($t['room_number']) ?></span></td>
                             <td>
                                 <strong><?= htmlspecialchars($t['name']) ?></strong>
-                                <div class="text-muted small">NIK: <?= htmlspecialchars($t['identity_number']) ?></div>
+                                <div class="text-muted small">NIK: <?= htmlspecialchars($t['identity_number'] ?: '-') ?></div>
                             </td>
                             <td>
                                 <?php if (!empty($t['phone'])): ?>

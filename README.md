@@ -20,6 +20,7 @@ folder `data/` diblokir dari akses web melalui `.htaccess`. Jangan menghapus atu
 foto, upload, spreadsheet berisi data penghuni, dan konfigurasi lokal.
 
 Periode tarif sewa tenant tersedia dalam pilihan `Perbulan`, `Per 6 Bulan`, atau `Pertahun`. Perpanjangan tenggat pembayaran mengikuti periode yang dipilih.
+NIK/No. KTP tenant bersifat opsional; jika diisi, nilainya tetap digunakan untuk mencegah data tenant ganda.
 
 Setiap unit memiliki status operasional `Terisi`, `Kosong`, `Dalam perbaikan`, atau `Renovasi`. Status ini terpisah dari kondisi fisik unit dan dapat diubah dari halaman **Unit**.
 

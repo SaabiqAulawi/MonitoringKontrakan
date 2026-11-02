@@ -161,7 +161,7 @@ $sisaTagihan = max(0, $rentPrice - $amount);
             <tr>
                 <td class="text-muted">NIK / No. Identitas</td>
                 <td>:</td>
-                <td><code><?= htmlspecialchars($tenant['identity_number']) ?></code></td>
+                <td><code><?= htmlspecialchars($tenant['identity_number'] ?: '-') ?></code></td>
             </tr>
             <tr>
                 <td class="text-muted">Untuk Pembayaran</td>

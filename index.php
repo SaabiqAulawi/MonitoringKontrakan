@@ -406,7 +406,7 @@ $tenants = $stmt->fetchAll();
                     </td>
                     <td>
                         <div class="fw-bold text-dark"><?= htmlspecialchars($t['name']) ?></div>
-                        <small class="text-muted"><i class="fa-solid fa-id-card me-1"></i>NIK: <?= htmlspecialchars($t['identity_number']) ?></small>
+                        <small class="text-muted"><i class="fa-solid fa-id-card me-1"></i>NIK: <?= htmlspecialchars($t['identity_number'] ?: '-') ?></small>
                         <?php if (!empty($t['ktp_address'])): ?>
                             <div class="text-muted small" style="font-size: 0.75rem;"><i class="fa-solid fa-map-pin me-1"></i><?= htmlspecialchars(substr($t['ktp_address'], 0, 35)) ?><?= strlen($t['ktp_address']) > 35 ? '...' : '' ?></div>
                         <?php endif; ?>
