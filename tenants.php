@@ -9,8 +9,16 @@ $alertType = 'info';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
     verifyCsrf();
     $id = (int)$_POST['delete_id'];
+    $stmtDeletedTenant = $pdo->prepare('SELECT unit_id FROM tenants WHERE id = ?');
+    $stmtDeletedTenant->execute([$id]);
+    $deletedUnitId = (int)($stmtDeletedTenant->fetchColumn() ?: 0);
     $stmtDel = $pdo->prepare("DELETE FROM tenants WHERE id = ?");
     $stmtDel->execute([$id]);
+    if ($deletedUnitId > 0) {
+        $pdo->prepare("UPDATE units SET unit_status = 'kosong', updated_at = CURRENT_TIMESTAMP
+            WHERE id = ? AND unit_status = 'terisi'
+            AND NOT EXISTS (SELECT 1 FROM tenants WHERE unit_id = units.id)")->execute([$deletedUnitId]);
+    }
     $message = "Data penghuni berhasil dihapus.";
     $alertType = "success";
 }
@@ -19,7 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
     verifyCsrf();
     $id = (int)($_POST['id'] ?? 0);
-    $room = trim($_POST['room_number'] ?? '');
+    $unitId = (int)($_POST['unit_id'] ?? 0);
+    $unitStmt = $pdo->prepare('SELECT id, unit_code, address FROM units WHERE id = ?');
+    $unitStmt->execute([$unitId]);
+    $unit = $unitStmt->fetch();
+    $room = $unit ? $unit['unit_code'] : '';
     $name = trim($_POST['name'] ?? '');
     $nik = trim($_POST['identity_number'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
@@ -38,11 +50,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
     }
     $notes = trim($_POST['notes'] ?? '');
 
-    if (empty($name) || empty($nik) || empty($room)) {
-        $message = "Nama, alamat/unit, dan NIK/No. KTP wajib diisi!";
+    if (!$unit || empty($name) || empty($nik)) {
+        $message = "Unit, nama, dan NIK/No. KTP wajib diisi!";
         $alertType = "danger";
     } else {
-        if ($id > 0) {
+        $stmtUnitTenant = $pdo->prepare('SELECT id FROM tenants WHERE unit_id = ? AND id != ?');
+        $stmtUnitTenant->execute([$unitId, $id]);
+        if ($stmtUnitTenant->fetch()) {
+            $message = "Unit tersebut sudah memiliki penghuni.";
+            $alertType = "danger";
+        } elseif ($id > 0) {
             // Edit: cek NIK apakah bentrok dengan tenant lain
             $stmtCek = $pdo->prepare("SELECT id FROM tenants WHERE identity_number = ? AND id != ?");
             $stmtCek->execute([$nik, $id]);
@@ -51,10 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
                 $alertType = "danger";
             } else {
                 $stmtUp = $pdo->prepare("UPDATE tenants SET 
-                    room_number = ?, name = ?, identity_number = ?, phone = ?, ktp_address = ?,
+                    unit_id = ?, room_number = ?, name = ?, identity_number = ?, phone = ?, ktp_address = ?,
                     landlord_name = ?, rent_price = ?, paid_amount = ?, rent_period = ?, start_date = ?, due_date = ?,
                     payment_status = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
-                $stmtUp->execute([$room, $name, $nik, $phone, $ktpAddress, $landlord, $price, $paidAmount, $period, $startDate, $dueDate, $status, $notes, $id]);
+                $stmtUp->execute([$unitId, $room, $name, $nik, $phone, $ktpAddress, $landlord, $price, $paidAmount, $period, $startDate, $dueDate, $status, $notes, $id]);
                 $message = "Data penghuni berhasil diperbarui.";
                 $alertType = "success";
             }
@@ -67,13 +84,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
                 $alertType = "warning";
             } else {
                 $stmtIns = $pdo->prepare("INSERT INTO tenants (
-                    room_number, name, identity_number, phone, ktp_address, landlord_name,
+                    unit_id, room_number, name, identity_number, phone, ktp_address, landlord_name,
                     rent_price, paid_amount, rent_period, start_date, due_date, payment_status, notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmtIns->execute([$room, $name, $nik, $phone, $ktpAddress, $landlord, $price, $paidAmount, $period, $startDate, $dueDate, $status, $notes]);
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmtIns->execute([$unitId, $room, $name, $nik, $phone, $ktpAddress, $landlord, $price, $paidAmount, $period, $startDate, $dueDate, $status, $notes]);
                 $message = "Penghuni baru berhasil ditambahkan.";
                 $alertType = "success";
             }
+        }
+        if ($message === "Data penghuni berhasil diperbarui." || $message === "Penghuni baru berhasil ditambahkan.") {
+            $pdo->prepare("UPDATE units SET unit_status = 'terisi', updated_at = CURRENT_TIMESTAMP WHERE id = ?")->execute([$unitId]);
+            $pdo->exec("UPDATE units SET unit_status = 'kosong', updated_at = CURRENT_TIMESTAMP
+                WHERE unit_status = 'terisi'
+                AND NOT EXISTS (SELECT 1 FROM tenants WHERE unit_id = units.id)");
         }
     }
 }
@@ -85,6 +108,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
     $stmtE->execute([(int)$_GET['id']]);
     $editTenant = $stmtE->fetch();
 }
+$units = $pdo->query('SELECT id, unit_code, address, unit_status FROM units ORDER BY unit_code')->fetchAll();
 
 // Ambil semua daftar penghuni
 $search = trim($_GET['search'] ?? '');
@@ -126,8 +150,16 @@ $tenants = $stmt->fetchAll();
                     <?php endif; ?>
 
                     <div class="mb-2">
-                        <label class="form-label small fw-bold">Alamat / Kode Unit *</label>
-                        <input type="text" name="room_number" class="form-control form-control-sm" placeholder="Contoh: Jl. Melati No. 3 / U-01" value="<?= htmlspecialchars($editTenant['room_number'] ?? '') ?>" required>
+                        <label class="form-label small fw-bold">Unit Kontrakan *</label>
+                        <select name="unit_id" class="form-select form-select-sm" required>
+                            <option value="">Pilih unit</option>
+                            <?php foreach ($units as $unitOption): ?>
+                                <option value="<?= (int)$unitOption['id'] ?>" <?= (int)($editTenant['unit_id'] ?? 0) === (int)$unitOption['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($unitOption['unit_code'] . ' · ' . $unitOption['address'] . ' (' . str_replace('_', ' ', $unitOption['unit_status']) . ')') ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?php if (!$units): ?><small class="text-danger">Tambahkan unit terlebih dahulu melalui menu Unit.</small><?php endif; ?>
                     </div>
 
                     <div class="mb-2">
