@@ -110,7 +110,7 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $tenants = $stmt->fetchAll();
 
-$timelineTenants = $pdo->query("SELECT t.room_number, t.name, u.address, t.start_date, t.due_date, t.payment_status
+$timelineTenants = $pdo->query("SELECT t.room_number, t.name, u.address, t.start_date, t.due_date, t.rent_period, t.payment_status
     FROM tenants t
     LEFT JOIN units u ON u.id = t.unit_id
     ORDER BY t.start_date, t.room_number, t.name")->fetchAll();
@@ -119,7 +119,8 @@ $timelineStart->modify('-2 months');
 $timelineEnd = clone $timelineStart;
 $timelineEnd->modify('+14 months');
 foreach ($timelineTenants as $timelineTenant) {
-    $contractEnd = new DateTime($timelineTenant['due_date']);
+    $contractEnd = new DateTime($timelineTenant['start_date']);
+    $contractEnd->modify('+' . rentPeriodMonths($timelineTenant['rent_period'] ?? 'bulanan') . ' months');
     if ($contractEnd > $timelineEnd) {
         $timelineEnd = clone $contractEnd;
         $timelineEnd->modify('first day of next month');
@@ -255,7 +256,8 @@ for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
                     <?php foreach ($timelineTenants as $timelineTenant): ?>
                         <?php
                         $contractStart = new DateTime($timelineTenant['start_date']);
-                        $contractEnd = new DateTime($timelineTenant['due_date']);
+                        $contractEnd = new DateTime($timelineTenant['start_date']);
+                        $contractEnd->modify('+' . rentPeriodMonths($timelineTenant['rent_period'] ?? 'bulanan') . ' months');
                         $contractExpiredBeforeTimeline = $contractEnd <= $timelineStart;
                         $barStart = max(0, min($timelineTotalDays, $timelineStart->diff($contractStart)->invert
                             ? 0
@@ -286,7 +288,7 @@ for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
                                 <span class="timeline-today-line" style="left: <?= ($timelineTodayOffset / $timelineTotalDays) * 100 ?>%;"></span>
                             <?php endif; ?>
                             <?php if ($barEnd > 0 && $barStart < $timelineTotalDays): ?>
-                                <span class="timeline-bar <?= $barClass ?>" style="left: <?= ($barStart / $timelineTotalDays) * 100 ?>%; width: <?= ($barWidth / $timelineTotalDays) * 100 ?>%;" title="<?= htmlspecialchars(formatTanggalIndonesia($timelineTenant['start_date']) . ' - ' . formatTanggalIndonesia($timelineTenant['due_date']) . ($contractExpiredBeforeTimeline ? ' (sudah berakhir)' : '')) ?>"></span>
+                                <span class="timeline-bar <?= $barClass ?>" style="left: <?= ($barStart / $timelineTotalDays) * 100 ?>%; width: <?= ($barWidth / $timelineTotalDays) * 100 ?>%;" title="<?= htmlspecialchars(formatTanggalIndonesia($timelineTenant['start_date']) . ' - ' . formatTanggalIndonesia($contractEnd->format('Y-m-d')) . ($contractExpiredBeforeTimeline ? ' (sudah berakhir)' : '')) ?>"></span>
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
