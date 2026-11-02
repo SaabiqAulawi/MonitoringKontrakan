@@ -1,0 +1,35 @@
+# Local database and SQLite sidecar files
+data/*.db
+data/*.db-*
+data/*.sqlite
+data/*.sqlite-*
+
+# Uploaded/generated local data
+data/uploads/
+data/photos/
+data/*.jpg
+data/*.jpeg
+data/*.png
+data/*.webp
+data/*.xlsx
+data/*.xls
+*.xlsx
+!Format_Penghuni_Kost_Kontrakan.xlsx
+*.xls
+*.md
+
+# Local secrets and environment configuration
+.env
+.env.*
+!.env.example
+config.local.php
+secrets/
+
+# Runtime and editor files
+*.log
+*.tmp
+*.bak
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini

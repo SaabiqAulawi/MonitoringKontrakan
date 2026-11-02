@@ -1,0 +1,10 @@
+- ada perubahan nama dari "Kamar" di dashboard jadi unit, karena penggunaan aplikasi ini untuk monitor kontrakan 
+- adain fitur login supaya ngga semua orang bisa dapet akses. untuk sekarang perlu 2 akun, administrator (aku) dan owner (eyang)
+- log juga diperbarui, biar kebaca akun yang ngubah status itu akunnya siapa
+- bahasa bulan pada pesan yang akan dikirim ke wa tenant diubah jadi bahasa indo
+- ui disederhanakan, karena user ada yang jarang buka website
+- ui web dibuat kompatibel untuk tampilan desktop dan hp
+- bukan no/nama kamar, ganti jadi alamat kontrakan
+- database dirubah jadi lebih difokuskan ke unit, bukan tenant yang menempati. karena perlu ada data" lain yaitu kondisi unit seperti apa, apakah perlu perbaikan, foto unit, alamat unit, spesifikasi (seeprti ada kamar berapa, toilet berapa, luas berapa, ada berapa lantai(1/2/3))
+- jadi nanti ada table sendiri untuk unit, ada table sendiri untuk tenant, dan beberapa table turunan untuk relasi antar table dan receipt
+- contact person tenant bisa lebih dari satu
