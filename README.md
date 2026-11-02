@@ -22,6 +22,7 @@ foto, upload, spreadsheet berisi data penghuni, dan konfigurasi lokal.
 Periode tarif sewa penghuni tersedia dalam pilihan `Perbulan`, `Per 6 Bulan`, atau `Pertahun`. Perpanjangan tenggat pembayaran mengikuti periode yang dipilih.
 NIK/No. KTP penghuni bersifat opsional; jika diisi, nilainya tetap digunakan untuk mencegah data penghuni ganda.
 Pembayaran awal boleh berupa DP, tetapi minimal 2/3 dari total tarif dan pelunasan harus diselesaikan paling lambat 2 bulan setelah tanggal DP.
+Saat nominal pembayaran memenuhi batas minimal DP tetapi belum mencapai total tarif, sistem otomatis menetapkan status **Membayar Sebagian**; status tersebut tetap dihitung belum lunas sampai pelunasan atau batas 2 bulan terlewati.
 Penambahan penghuni dan unit tersedia pada halaman terpisah melalui menu **Tambah Penghuni**
 dan **Tambah Unit**; halaman **Penghuni** dan **Unit** digunakan untuk melihat, mengedit,
 dan menghapus data yang sudah ada.

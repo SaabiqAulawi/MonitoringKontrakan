@@ -47,6 +47,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
     $dueDate = trim($_POST['due_date'] ?? date('Y-m-d', strtotime('+' . rentPeriodMonths($period) . ' months')));
     $status = trim($_POST['payment_status'] ?? 'belum_bayar');
     $paidAmount = (float)($_POST['paid_amount'] ?? 0);
+    if ($paidAmount >= $price && $price > 0) {
+        $status = 'sudah_bayar';
+    } elseif ($paidAmount >= minimumDownPayment($price)) {
+        $status = 'bayar_sebagian';
+    }
     if ($status === 'sudah_bayar' && $paidAmount <= 0) {
         $paidAmount = $price;
     } elseif ($status === 'belum_bayar') {
