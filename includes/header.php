@@ -5,7 +5,6 @@ $currentUser = requireLogin();
 
 $today = date('Y-m-d');
 $h2Date = date('Y-m-d', strtotime('+2 days'));
-$overdueCutoff = date('Y-m-d', strtotime('-4 days')); // H+4 batas akhir grace period, H+5 ke atas menunggak
 
 // Hitung notifikasi belum lunas (belum bayar & membayar sebagian) yang mendekati jatuh tempo atau lewat tenggat
 $stmtUrgent = $pdo->prepare("SELECT COUNT(*) FROM tenants 

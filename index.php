@@ -48,8 +48,6 @@ $search = trim($_GET['search'] ?? '');
 
 $today = date('Y-m-d');
 $h2Date = date('Y-m-d', strtotime('+2 days'));
-// Tagihan biasa memiliki toleransi sampai H+4; DP memiliki batas pelunasan maksimal 2 bulan.
-$overdueCutoff = date('Y-m-d', strtotime('-4 days'));
 
 // 1. Statistik Ringkasan
 $totalPenghuni = (int)$pdo->query("SELECT COUNT(*) FROM tenants")->fetchColumn();
@@ -57,24 +55,19 @@ $sudahBayar    = (int)$pdo->query("SELECT COUNT(*) FROM tenants WHERE payment_st
 $bayarSebagian = (int)$pdo->query("SELECT COUNT(*) FROM tenants WHERE payment_status = 'bayar_sebagian'")->fetchColumn();
 $belumBayar    = (int)$pdo->query("SELECT COUNT(*) FROM tenants WHERE payment_status = 'belum_bayar'")->fetchColumn();
 
-// Penghuni DP menunggak tepat setelah batas pelunasan 2 bulan; belum bayar tetap memiliki toleransi H+4.
+// DP menunggak setelah batas pelunasan 2 bulan; penghuni tanpa pembayaran menunggak setelah tenggat.
 $stmtOverdue = $pdo->prepare("SELECT COUNT(*) FROM tenants
     WHERE (payment_status = 'bayar_sebagian' AND due_date < ?)
        OR (payment_status = 'belum_bayar' AND due_date < ?)");
-$stmtOverdue->execute([$today, $overdueCutoff]);
+$stmtOverdue->execute([$today, $today]);
 $overdueCount = (int)$stmtOverdue->fetchColumn();
-
-// Belum bayar biasa dalam masa toleransi Hari H s/d H+4
-$stmtGrace = $pdo->prepare("SELECT COUNT(*) FROM tenants WHERE payment_status = 'belum_bayar' AND due_date >= ? AND due_date <= ?");
-$stmtGrace->execute([$overdueCutoff, $today]);
-$graceCount = (int)$stmtGrace->fetchColumn();
 
 // H-1 & H-2 mendekati tenggat
 $stmtH2 = $pdo->prepare("SELECT COUNT(*) FROM tenants WHERE payment_status IN ('belum_bayar', 'bayar_sebagian') AND due_date > ? AND due_date <= ?");
 $stmtH2->execute([$today, $h2Date]);
 $h2Count = (int)$stmtH2->fetchColumn();
 
-// Total urgent (menunggak + H s/d H+4 + H-2)
+// Total yang perlu ditindaklanjuti: sudah jatuh tempo atau mendekati tenggat.
 $stmtUrgent = $pdo->prepare("SELECT COUNT(*) FROM tenants WHERE payment_status IN ('belum_bayar', 'bayar_sebagian') AND due_date <= ?");
 $stmtUrgent->execute([$h2Date]);
 $urgentCount = (int)$stmtUrgent->fetchColumn();
@@ -103,10 +96,6 @@ if ($filter === 'unpaid') {
 } elseif ($filter === 'overdue') {
     $sql .= " AND ((payment_status = 'bayar_sebagian' AND due_date < ?) OR (payment_status = 'belum_bayar' AND due_date < ?))";
     $params[] = $today;
-    $params[] = $overdueCutoff;
-} elseif ($filter === 'grace') {
-    $sql .= " AND payment_status = 'belum_bayar' AND due_date >= ? AND due_date <= ?";
-    $params[] = $overdueCutoff;
     $params[] = $today;
 }
 
@@ -134,9 +123,9 @@ $tenants = $stmt->fetchAll();
     <div class="flex-grow-1">
         <h6 class="mb-1 fw-bold text-dark">Pemberitahuan Tenggat Pembayaran Kos!</h6>
         <div class="small text-secondary">
-            Terdapat <strong><?= $overdueCount ?></strong> penghuni yang menunggak (DP melewati 2 bulan atau tagihan biasa > H+4), 
-            <strong><?= $graceCount ?></strong> kamar dalam periode <strong>Hari H s/d H+4</strong>, 
-            dan <strong><?= $bayarSebagian ?></strong> kamar berstatus <strong>Membayar Sebagian</strong>. 
+            Terdapat <strong><?= $overdueCount ?></strong> penghuni yang menunggak
+            (DP melewati 2 bulan atau belum membayar setelah tenggat),
+            dan <strong><?= $bayarSebagian ?></strong> penghuni berstatus <strong>Membayar Sebagian</strong>.
             Anda dapat langsung mengirimkan pengingat ramah melalui tombol WhatsApp di bawah.
         </div>
     </div>
@@ -198,7 +187,7 @@ $tenants = $stmt->fetchAll();
                 <div>
                     <span class="text-muted small fw-semibold text-uppercase">Menunggak</span>
                     <h3 class="fw-bold my-1 text-danger"><?= $overdueCount ?></h3>
-                    <small class="text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>DP lewat 2 bulan atau belum bayar mulai H+5</small>
+                    <small class="text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>DP lewat 2 bulan atau belum bayar setelah tenggat</small>
                 </div>
                 <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger fs-3">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
@@ -223,9 +212,6 @@ $tenants = $stmt->fetchAll();
                     </a>
                     <a href="index.php?filter=overdue" class="btn <?= $filter === 'overdue' ? 'btn-danger' : 'btn-outline-danger' ?>">
                         Menunggak (<?= $overdueCount ?>)
-                    </a>
-                    <a href="index.php?filter=grace" class="btn <?= $filter === 'grace' ? 'btn-warning text-dark' : 'btn-outline-warning text-dark' ?>">
-                        Tagihan Biasa H s/d H+4 (<?= $graceCount ?>)
                     </a>
                     <a href="index.php?filter=partial" class="btn <?= $filter === 'partial' ? 'btn-info text-dark fw-bold' : 'btn-outline-info text-dark' ?>">
                         Membayar Sebagian (<?= $bayarSebagian ?>)
@@ -337,17 +323,11 @@ $tenants = $stmt->fetchAll();
                             $countdownText = '<span class="badge bg-danger">Batas DP terlewati ' . abs($diff) . ' Hari</span>';
                             $waStatus = "Batas pelunasan DP terlewati " . abs($diff) . " Hari (Sisa Rp " . number_format($sisa, 0, ',', '.') . ")";
                             $rowClass = 'table-danger bg-opacity-25';
-                        } elseif ($diff <= 0 && $diff >= -4) {
+                        } elseif ($diff === 0) {
                             $badgeClass = 'badge-partial';
-                            if ($diff === 0) {
-                                $statusLabel = '<i class="fa-solid fa-clock-rotate-left me-1"></i> Membayar Sebagian (Hari H)' . $keteranganNominal;
-                                $countdownText = '<span class="badge bg-warning text-dark animate__animated animate__pulse">Hari H</span>';
-                                $waStatus = "Jatuh Tempo Hari Ini (Sisa Rp " . number_format($sisa, 0, ',', '.') . ")";
-                            } else {
-                                $statusLabel = '<i class="fa-solid fa-clock-rotate-left me-1"></i> Membayar Sebagian (H+' . abs($diff) . ')' . $keteranganNominal;
-                                $countdownText = '<span class="badge bg-warning text-dark">H+' . abs($diff) . ' (Tenggang)</span>';
-                                $waStatus = "H+" . abs($diff) . " (Sisa Rp " . number_format($sisa, 0, ',', '.') . ")";
-                            }
+                            $statusLabel = '<i class="fa-solid fa-clock-rotate-left me-1"></i> Membayar Sebagian (Hari H)' . $keteranganNominal;
+                            $countdownText = '<span class="badge bg-warning text-dark animate__animated animate__pulse">Hari H</span>';
+                            $waStatus = "Jatuh Tempo Hari Ini (Sisa Rp " . number_format($sisa, 0, ',', '.') . ")";
                             $rowClass = 'table-warning bg-opacity-25';
                         } elseif ($diff <= 2) {
                             $badgeClass = 'badge-partial';
@@ -364,25 +344,17 @@ $tenants = $stmt->fetchAll();
                         }
                     } else {
                         // Belum bayar sama sekali
-                        if ($diff <= -5) {
-                            // H+5 seterusnya dianggap menunggak
+                        if ($diff < 0) {
                             $badgeClass = 'badge-overdue';
                             $statusLabel = '<i class="fa-solid fa-circle-exclamation me-1"></i> Menunggak';
                             $countdownText = '<span class="badge bg-danger">Terlambat ' . abs($diff) . ' Hari</span>';
                             $waStatus = "Menunggak " . abs($diff) . " Hari";
                             $rowClass = 'table-danger bg-opacity-25';
-                        } elseif ($diff <= 0 && $diff >= -4) {
-                            // Hari H sampai H+4 masih Belum Bayar
-                            $badgeClass = 'badge-grace';
-                            if ($diff === 0) {
-                                $statusLabel = '<i class="fa-solid fa-bell me-1"></i> Belum Bayar (Hari H)';
-                                $countdownText = '<span class="badge bg-warning text-dark animate__animated animate__pulse">Hari H</span>';
-                                $waStatus = "Jatuh Tempo Hari Ini";
-                            } else {
-                                $statusLabel = '<i class="fa-solid fa-hourglass-half me-1"></i> Belum Bayar (H+' . abs($diff) . ')';
-                                $countdownText = '<span class="badge bg-warning text-dark">H+' . abs($diff) . ' (Tenggang)</span>';
-                                $waStatus = "Lewat " . abs($diff) . " Hari (H+" . abs($diff) . ")";
-                            }
+                        } elseif ($diff === 0) {
+                            $badgeClass = 'badge-h2';
+                            $statusLabel = '<i class="fa-solid fa-bell me-1"></i> Belum Bayar (Hari H)';
+                            $countdownText = '<span class="badge bg-warning text-dark animate__animated animate__pulse">Jatuh Tempo Hari Ini</span>';
+                            $waStatus = "Jatuh Tempo Hari Ini";
                             $rowClass = 'table-warning bg-opacity-25';
                         } elseif ($diff <= 2) {
                             // H-1 atau H-2
