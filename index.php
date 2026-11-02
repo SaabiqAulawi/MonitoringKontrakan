@@ -256,19 +256,23 @@ for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
                         <?php
                         $contractStart = new DateTime($timelineTenant['start_date']);
                         $contractEnd = new DateTime($timelineTenant['due_date']);
+                        $contractExpiredBeforeTimeline = $contractEnd <= $timelineStart;
                         $barStart = max(0, min($timelineTotalDays, $timelineStart->diff($contractStart)->invert
                             ? 0
                             : (int)$timelineStart->diff($contractStart)->days));
                         if ($contractStart < $timelineStart) {
                             $barStart = 0;
                         }
-                        $barEnd = $contractEnd <= $timelineStart
-                            ? 0
+                        $barEnd = $contractExpiredBeforeTimeline
+                            ? 1
                             : ($contractEnd >= $timelineEnd ? $timelineTotalDays : (int)$timelineStart->diff($contractEnd)->days);
                         $barWidth = max(1, $barEnd - $barStart);
                         $barClass = $timelineTenant['payment_status'] === 'sudah_bayar'
                             ? 'timeline-paid'
                             : ($timelineTenant['payment_status'] === 'bayar_sebagian' ? 'timeline-partial' : 'timeline-unpaid');
+                        if ($contractExpiredBeforeTimeline) {
+                            $barClass = 'timeline-expired';
+                        }
                         ?>
                         <div class="timeline-label">
                             <strong><?= htmlspecialchars($timelineTenant['room_number']) ?></strong>
@@ -283,7 +287,7 @@ for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
                                 <span class="timeline-today-line" style="left: <?= ($timelineTodayOffset / $timelineTotalDays) * 100 ?>%;"></span>
                             <?php endif; ?>
                             <?php if ($barEnd > 0 && $barStart < $timelineTotalDays): ?>
-                                <span class="timeline-bar <?= $barClass ?>" style="left: <?= ($barStart / $timelineTotalDays) * 100 ?>%; width: <?= ($barWidth / $timelineTotalDays) * 100 ?>%;" title="<?= htmlspecialchars(formatTanggalIndonesia($timelineTenant['start_date']) . ' - ' . formatTanggalIndonesia($timelineTenant['due_date'])) ?>"></span>
+                                <span class="timeline-bar <?= $barClass ?>" style="left: <?= ($barStart / $timelineTotalDays) * 100 ?>%; width: <?= ($barWidth / $timelineTotalDays) * 100 ?>%;" title="<?= htmlspecialchars(formatTanggalIndonesia($timelineTenant['start_date']) . ' - ' . formatTanggalIndonesia($timelineTenant['due_date']) . ($contractExpiredBeforeTimeline ? ' (sudah berakhir)' : '')) ?>"></span>
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>

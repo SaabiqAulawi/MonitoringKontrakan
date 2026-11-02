@@ -211,6 +211,10 @@ function formatTanggalIndonesia(string $date): string {
         .timeline-paid { background: #10b981; }
         .timeline-partial { background: #f59e0b; }
         .timeline-unpaid { background: #64748b; }
+        .timeline-expired {
+            background: #94a3b8;
+            border: 1px dashed #475569;
+        }
         .wa-btn {
             background-color: #25D366;
             color: white;
