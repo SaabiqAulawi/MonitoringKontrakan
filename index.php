@@ -109,6 +109,37 @@ END, due_date ASC";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $tenants = $stmt->fetchAll();
+
+$timelineTenants = $pdo->query("SELECT room_number, name, start_date, due_date, payment_status
+    FROM tenants ORDER BY start_date, room_number, name")->fetchAll();
+$timelineStart = new DateTime('first day of this month');
+$timelineEnd = clone $timelineStart;
+$timelineEnd->modify('+12 months');
+if ($timelineTenants) {
+    $timelineStart = new DateTime($timelineTenants[0]['start_date']);
+    $timelineStart->modify('first day of this month');
+    $timelineEnd = new DateTime($timelineTenants[0]['due_date']);
+    foreach ($timelineTenants as $timelineTenant) {
+        $contractStart = new DateTime($timelineTenant['start_date']);
+        $contractEnd = new DateTime($timelineTenant['due_date']);
+        if ($contractStart < $timelineStart) {
+            $timelineStart = clone $contractStart;
+            $timelineStart->modify('first day of this month');
+        }
+        if ($contractEnd > $timelineEnd) {
+            $timelineEnd = clone $contractEnd;
+        }
+    }
+    $timelineEnd->modify('first day of next month');
+}
+$timelineTotalDays = max(1, (int)$timelineStart->diff($timelineEnd)->days);
+$timelineMonths = [];
+$timelineCursor = clone $timelineStart;
+$timelineMonthCount = max(1, ((int)$timelineStart->diff($timelineEnd)->y * 12) + (int)$timelineStart->diff($timelineEnd)->m);
+for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
+    $timelineMonths[] = clone $timelineCursor;
+    $timelineCursor->modify('+1 month');
+}
 ?>
 
 <!-- Alert Notifikasi H-2 & Menunggak -->
@@ -194,6 +225,70 @@ $tenants = $stmt->fetchAll();
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Timeline Masa Kontrak -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white py-3">
+        <div>
+            <h5 class="mb-0 fw-bold">
+                <i class="fa-solid fa-chart-gantt text-primary me-2"></i>Timeline Masa Kontrak
+            </h5>
+            <small class="text-muted">Rentang kontrak berdasarkan tanggal mulai dan tenggat pembayaran setiap penghuni.</small>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <?php if (!$timelineTenants): ?>
+            <div class="text-center text-muted py-4">Belum ada data penghuni untuk ditampilkan.</div>
+        <?php else: ?>
+            <div class="timeline-scroll">
+                <div class="timeline-grid" style="--timeline-columns: <?= $timelineMonthCount ?>;">
+                    <div class="timeline-label timeline-header">Unit / Penghuni</div>
+                    <div class="timeline-months">
+                        <?php foreach ($timelineMonths as $month): ?>
+                            <div class="timeline-month"><?= htmlspecialchars(formatTanggalIndonesia($month->format('Y-m-01'))) ?></div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php foreach ($timelineTenants as $timelineTenant): ?>
+                        <?php
+                        $contractStart = new DateTime($timelineTenant['start_date']);
+                        $contractEnd = new DateTime($timelineTenant['due_date']);
+                        $barStart = max(0, min($timelineTotalDays, $timelineStart->diff($contractStart)->invert
+                            ? 0
+                            : (int)$timelineStart->diff($contractStart)->days));
+                        if ($contractStart < $timelineStart) {
+                            $barStart = 0;
+                        }
+                        $barEnd = $contractEnd <= $timelineStart
+                            ? 0
+                            : ($contractEnd >= $timelineEnd ? $timelineTotalDays : (int)$timelineStart->diff($contractEnd)->days);
+                        $barWidth = max(1, $barEnd - $barStart);
+                        $barClass = $timelineTenant['payment_status'] === 'sudah_bayar'
+                            ? 'timeline-paid'
+                            : ($timelineTenant['payment_status'] === 'bayar_sebagian' ? 'timeline-partial' : 'timeline-unpaid');
+                        ?>
+                        <div class="timeline-label">
+                            <strong><?= htmlspecialchars($timelineTenant['room_number']) ?></strong>
+                            <small><?= htmlspecialchars($timelineTenant['name']) ?></small>
+                        </div>
+                        <div class="timeline-track">
+                            <?php foreach ($timelineMonths as $month): ?>
+                                <span class="timeline-column"></span>
+                            <?php endforeach; ?>
+                            <?php if ($barEnd > 0 && $barStart < $timelineTotalDays): ?>
+                                <span class="timeline-bar <?= $barClass ?>" style="left: <?= ($barStart / $timelineTotalDays) * 100 ?>%; width: <?= ($barWidth / $timelineTotalDays) * 100 ?>%;" title="<?= htmlspecialchars(formatTanggalIndonesia($timelineTenant['start_date']) . ' - ' . formatTanggalIndonesia($timelineTenant['due_date'])) ?>"></span>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-3 px-3 py-3 border-top small text-muted">
+                <span><i class="fa-solid fa-square text-success me-1"></i>Sudah Lunas</span>
+                <span><i class="fa-solid fa-square text-warning me-1"></i>Membayar Sebagian</span>
+                <span><i class="fa-solid fa-square text-secondary me-1"></i>Belum Bayar</span>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 

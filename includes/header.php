@@ -121,6 +121,72 @@ function formatTanggalIndonesia(string $date): string {
         .table-hover tbody tr:hover {
             background-color: #f8fafc;
         }
+        .timeline-scroll {
+            overflow-x: auto;
+        }
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: 190px minmax(calc(var(--timeline-columns) * 70px), 1fr);
+            min-width: calc(190px + var(--timeline-columns) * 70px);
+        }
+        .timeline-label {
+            min-height: 54px;
+            padding: 0.65rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #fff;
+        }
+        .timeline-label small {
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .timeline-header {
+            min-height: 48px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+        .timeline-months,
+        .timeline-track {
+            display: grid;
+            grid-template-columns: repeat(var(--timeline-columns), minmax(70px, 1fr));
+            position: relative;
+        }
+        .timeline-month {
+            min-height: 48px;
+            padding: 0.65rem 0.5rem;
+            border-left: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            color: #475569;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .timeline-track {
+            min-height: 54px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+        .timeline-column {
+            border-left: 1px solid #e2e8f0;
+        }
+        .timeline-bar {
+            position: absolute;
+            top: 17px;
+            height: 20px;
+            border-radius: 999px;
+            min-width: 8px;
+            box-shadow: 0 2px 5px rgba(15, 23, 42, 0.15);
+        }
+        .timeline-paid { background: #10b981; }
+        .timeline-partial { background: #f59e0b; }
+        .timeline-unpaid { background: #64748b; }
         .wa-btn {
             background-color: #25D366;
             color: white;
