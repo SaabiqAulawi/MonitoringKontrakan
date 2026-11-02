@@ -267,11 +267,10 @@ for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
                             ? 1
                             : ($contractEnd >= $timelineEnd ? $timelineTotalDays : (int)$timelineStart->diff($contractEnd)->days);
                         $barWidth = max(1, $barEnd - $barStart);
-                        $barClass = $timelineTenant['payment_status'] === 'sudah_bayar'
-                            ? 'timeline-paid'
-                            : ($timelineTenant['payment_status'] === 'bayar_sebagian' ? 'timeline-partial' : 'timeline-unpaid');
                         if ($contractExpiredBeforeTimeline) {
                             $barClass = 'timeline-expired';
+                        } else {
+                            $barClass = 'timeline-contract';
                         }
                         ?>
                         <div class="timeline-label">
@@ -294,9 +293,8 @@ for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
                 </div>
             </div>
             <div class="d-flex flex-wrap gap-3 px-3 py-3 border-top small text-muted">
-                <span><i class="fa-solid fa-square text-success me-1"></i>Sudah Lunas</span>
-                <span><i class="fa-solid fa-square text-warning me-1"></i>Membayar Sebagian</span>
-                <span><i class="fa-solid fa-square text-secondary me-1"></i>Belum Bayar</span>
+                <span><i class="fa-solid fa-square text-primary me-1"></i>Rentang masa kontrak</span>
+                <span><i class="fa-solid fa-square text-secondary me-1"></i>Kontrak sudah berakhir sebelum rentang tampilan</span>
             </div>
         <?php endif; ?>
     </div>

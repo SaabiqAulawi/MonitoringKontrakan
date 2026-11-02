@@ -208,9 +208,7 @@ function formatTanggalIndonesia(string $date): string {
             min-width: 8px;
             box-shadow: 0 2px 5px rgba(15, 23, 42, 0.15);
         }
-        .timeline-paid { background: #10b981; }
-        .timeline-partial { background: #f59e0b; }
-        .timeline-unpaid { background: #64748b; }
+        .timeline-contract { background: #2563eb; }
         .timeline-expired {
             background: #94a3b8;
             border: 1px dashed #475569;
