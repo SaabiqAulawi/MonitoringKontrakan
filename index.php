@@ -57,13 +57,15 @@ $sudahBayar    = (int)$pdo->query("SELECT COUNT(*) FROM tenants WHERE payment_st
 $bayarSebagian = (int)$pdo->query("SELECT COUNT(*) FROM tenants WHERE payment_status = 'bayar_sebagian'")->fetchColumn();
 $belumBayar    = (int)$pdo->query("SELECT COUNT(*) FROM tenants WHERE payment_status = 'belum_bayar'")->fetchColumn();
 
-// Menunggak: belum lunas (belum_bayar atau bayar_sebagian) dan sudah melewati H+4 (due_date < $overdueCutoff)
-$stmtOverdue = $pdo->prepare("SELECT COUNT(*) FROM tenants WHERE payment_status IN ('belum_bayar', 'bayar_sebagian') AND due_date < ?");
-$stmtOverdue->execute([$overdueCutoff]);
+// Penghuni DP menunggak tepat setelah batas pelunasan 2 bulan; belum bayar tetap memiliki toleransi H+4.
+$stmtOverdue = $pdo->prepare("SELECT COUNT(*) FROM tenants
+    WHERE (payment_status = 'bayar_sebagian' AND due_date < ?)
+       OR (payment_status = 'belum_bayar' AND due_date < ?)");
+$stmtOverdue->execute([$today, $overdueCutoff]);
 $overdueCount = (int)$stmtOverdue->fetchColumn();
 
 // Belum Bayar dalam masa toleransi Hari H s/d H+4
-$stmtGrace = $pdo->prepare("SELECT COUNT(*) FROM tenants WHERE payment_status IN ('belum_bayar', 'bayar_sebagian') AND due_date >= ? AND due_date <= ?");
+$stmtGrace = $pdo->prepare("SELECT COUNT(*) FROM tenants WHERE payment_status = 'belum_bayar' AND due_date >= ? AND due_date <= ?");
 $stmtGrace->execute([$overdueCutoff, $today]);
 $graceCount = (int)$stmtGrace->fetchColumn();
 
@@ -99,10 +101,11 @@ if ($filter === 'unpaid') {
     $sql .= " AND payment_status IN ('belum_bayar', 'bayar_sebagian') AND due_date <= ?";
     $params[] = $h2Date;
 } elseif ($filter === 'overdue') {
-    $sql .= " AND payment_status IN ('belum_bayar', 'bayar_sebagian') AND due_date < ?";
+    $sql .= " AND ((payment_status = 'bayar_sebagian' AND due_date < ?) OR (payment_status = 'belum_bayar' AND due_date < ?))";
+    $params[] = $today;
     $params[] = $overdueCutoff;
 } elseif ($filter === 'grace') {
-    $sql .= " AND payment_status IN ('belum_bayar', 'bayar_sebagian') AND due_date >= ? AND due_date <= ?";
+    $sql .= " AND payment_status = 'belum_bayar' AND due_date >= ? AND due_date <= ?";
     $params[] = $overdueCutoff;
     $params[] = $today;
 }
@@ -328,11 +331,11 @@ $tenants = $stmt->fetchAll();
                         $keteranganNominal = '<div class="small fw-semibold text-primary mt-1">Baru bayar: Rp ' . number_format($paidAmount, 0, ',', '.') . '</div>'
                                            . '<div class="small text-danger" style="font-size: 0.72rem;">Sisa: Rp ' . number_format($sisa, 0, ',', '.') . '</div>';
 
-                        if ($diff <= -5) {
+                        if ($diff < 0) {
                             $badgeClass = 'badge-overdue';
                             $statusLabel = '<i class="fa-solid fa-triangle-exclamation me-1"></i> Membayar Sebagian (Menunggak)' . $keteranganNominal;
-                            $countdownText = '<span class="badge bg-danger">Menunggak ' . abs($diff) . ' Hari</span>';
-                            $waStatus = "Menunggak " . abs($diff) . " Hari (Sisa Rp " . number_format($sisa, 0, ',', '.') . ")";
+                            $countdownText = '<span class="badge bg-danger">Batas DP terlewati ' . abs($diff) . ' Hari</span>';
+                            $waStatus = "Batas pelunasan DP terlewati " . abs($diff) . " Hari (Sisa Rp " . number_format($sisa, 0, ',', '.') . ")";
                             $rowClass = 'table-danger bg-opacity-25';
                         } elseif ($diff <= 0 && $diff >= -4) {
                             $badgeClass = 'badge-partial';
