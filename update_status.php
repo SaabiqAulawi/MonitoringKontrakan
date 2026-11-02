@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $amount = $paidAmount;
             // Jika opsi perpanjang tenggat dicentang
             if ($advanceDue === 1) {
-                $dueDate = date('Y-m-d', strtotime($dueDate . ' +1 month'));
+                $dueDate = date('Y-m-d', strtotime($dueDate . ' +' . rentPeriodMonths($tenant['rent_period'] ?? 'bulanan') . ' months'));
             }
             if (empty($notes)) {
                 $notes = "Pembayaran lunas sebesar Rp " . number_format($paidAmount, 0, ',', '.');
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $paidAt = date('Y-m-d H:i:s');
             $paidAmount = $amount;
             if ($advanceDue === 1) {
-                $dueDate = date('Y-m-d', strtotime($dueDate . ' +1 month'));
+                $dueDate = date('Y-m-d', strtotime($dueDate . ' +' . rentPeriodMonths($tenant['rent_period'] ?? 'bulanan') . ' months'));
             }
             $sisa = max(0, $rentPrice - $paidAmount);
             if (empty($notes)) {

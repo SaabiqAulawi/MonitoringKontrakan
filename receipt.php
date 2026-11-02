@@ -168,7 +168,7 @@ $sisaTagihan = max(0, $rentPrice - $amount);
                 <td>:</td>
                 <td>
                     Sewa Kamar / Unit <strong><?= htmlspecialchars($tenant['room_number']) ?></strong> 
-                    (Periode <?= htmlspecialchars(ucfirst($tenant['rent_period'])) ?>)
+                    (Periode <?= htmlspecialchars(rentPeriodLabel($tenant['rent_period'] ?? 'bulanan')) ?>)
                     <?php if ($isPartial): ?>
                         <div class="small text-warning fw-bold mt-1">
                             <i class="fa-solid fa-clock-rotate-left me-1"></i>Pembayaran Sebagian (Total Sewa: Rp <?= number_format($rentPrice, 0, ',', '.') ?> &bull; Sisa: Rp <?= number_format($sisaTagihan, 0, ',', '.') ?>)

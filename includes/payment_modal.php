@@ -75,11 +75,12 @@
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" role="switch" name="advance_due" id="advanceDue<?= $t['id'] ?>" value="1" <?= $t['payment_status'] === 'sudah_bayar' ? 'checked' : '' ?>>
                             <label class="form-check-label small fw-semibold" for="advanceDue<?= $t['id'] ?>">
-                                Otomatis perpanjang tenggat sewa +1 bulan ke depan
+                                Otomatis perpanjang tenggat sesuai periode sewa
                             </label>
                         </div>
                         <small class="text-muted d-block ps-4">
-                            Tenggat saat ini: <?= date('d M Y', strtotime($t['due_date'])) ?> &rarr; Akan menjadi: <strong><?= date('d M Y', strtotime($t['due_date'] . ' +1 month')) ?></strong>
+                            Periode: <?= htmlspecialchars(rentPeriodLabel($t['rent_period'] ?? 'bulanan')) ?> ·
+                            Tenggat saat ini: <?= date('d M Y', strtotime($t['due_date'])) ?> &rarr; Akan menjadi: <strong><?= date('d M Y', strtotime($t['due_date'] . ' +' . rentPeriodMonths($t['rent_period'] ?? 'bulanan') . ' months')) ?></strong>
                         </small>
                     </div>
 

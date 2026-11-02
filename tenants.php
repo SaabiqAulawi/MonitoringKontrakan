@@ -39,8 +39,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
     $landlord = trim($_POST['landlord_name'] ?? '');
     $price = (float)($_POST['rent_price'] ?? 1000000);
     $period = trim($_POST['rent_period'] ?? 'bulanan');
+    if (!in_array($period, ['bulanan', '6_bulan', 'tahunan'], true)) {
+        $period = 'bulanan';
+    }
     $startDate = trim($_POST['start_date'] ?? date('Y-m-d'));
-    $dueDate = trim($_POST['due_date'] ?? date('Y-m-d', strtotime('+1 month')));
+    $dueDate = trim($_POST['due_date'] ?? date('Y-m-d', strtotime('+' . rentPeriodMonths($period) . ' months')));
     $status = trim($_POST['payment_status'] ?? 'belum_bayar');
     $paidAmount = (float)($_POST['paid_amount'] ?? 0);
     if ($status === 'sudah_bayar' && $paidAmount <= 0) {
@@ -187,6 +190,7 @@ $tenants = $stmt->fetchAll();
                             <label class="form-label small fw-bold">Periode</label>
                             <select name="rent_period" class="form-select form-select-sm">
                                 <option value="bulanan" <?= ($editTenant['rent_period'] ?? '') === 'bulanan' ? 'selected' : '' ?>>Bulanan</option>
+                                <option value="6_bulan" <?= ($editTenant['rent_period'] ?? '') === '6_bulan' ? 'selected' : '' ?>>Per 6 Bulan</option>
                                 <option value="tahunan" <?= ($editTenant['rent_period'] ?? '') === 'tahunan' ? 'selected' : '' ?>>Tahunan</option>
                             </select>
                         </div>
@@ -199,7 +203,7 @@ $tenants = $stmt->fetchAll();
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-bold">Tenggat Bayar</label>
-                            <input type="date" name="due_date" class="form-control form-control-sm" value="<?= htmlspecialchars($editTenant['due_date'] ?? date('Y-m-d', strtotime('+1 month'))) ?>" required>
+                            <input type="date" name="due_date" class="form-control form-control-sm" value="<?= htmlspecialchars($editTenant['due_date'] ?? date('Y-m-d', strtotime('+' . rentPeriodMonths($editTenant['rent_period'] ?? 'bulanan') . ' months'))) ?>" required>
                         </div>
                     </div>
 

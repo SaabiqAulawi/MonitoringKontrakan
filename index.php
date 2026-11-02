@@ -422,7 +422,7 @@ $tenants = $stmt->fetchAll();
                     </td>
                     <td>
                         <strong class="text-dark">Rp <?= number_format($t['rent_price'], 0, ',', '.') ?></strong>
-                        <div class="text-muted" style="font-size: 0.75rem;"><?= htmlspecialchars(ucfirst($t['rent_period'] ?? 'bulanan')) ?></div>
+                        <div class="text-muted" style="font-size: 0.75rem;"><?= htmlspecialchars(rentPeriodLabel($t['rent_period'] ?? 'bulanan')) ?></div>
                         <?php if ($isPartial): ?>
                             <div class="small text-success fw-semibold" style="font-size: 0.75rem;"><i class="fa-solid fa-check me-1"></i>Masuk: Rp <?= number_format($paidAmount, 0, ',', '.') ?></div>
                             <div class="small text-danger fw-semibold" style="font-size: 0.75rem;"><i class="fa-solid fa-triangle-exclamation me-1"></i>Sisa: Rp <?= number_format($sisa, 0, ',', '.') ?></div>

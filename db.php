@@ -163,3 +163,19 @@ function getSetting(PDO $pdo, string $key, string $default = ''): string {
     $res = $stmt->fetchColumn();
     return $res !== false ? $res : $default;
 }
+
+function rentPeriodMonths(string $period): int {
+    return match ($period) {
+        '6_bulan' => 6,
+        'tahunan' => 12,
+        default => 1,
+    };
+}
+
+function rentPeriodLabel(string $period): string {
+    return match ($period) {
+        '6_bulan' => 'Per 6 Bulan',
+        'tahunan' => 'Pertahun',
+        default => 'Perbulan',
+    };
+}
