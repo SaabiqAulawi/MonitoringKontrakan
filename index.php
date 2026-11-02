@@ -170,7 +170,7 @@ $tenants = $stmt->fetchAll();
                 <div>
                     <span class="text-muted small fw-semibold text-uppercase">Sudah Lunas</span>
                     <h3 class="fw-bold my-1 text-success"><?= $sudahBayar ?></h3>
-                    <small class="text-success"><i class="fa-solid fa-check-double me-1"></i>Lunas bulan ini</small>
+                    <small class="text-success"><i class="fa-solid fa-check-double me-1"></i>Pembayaran penuh sesuai tarif</small>
                 </div>
                 <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success fs-3">
                     <i class="fa-solid fa-circle-check"></i>
@@ -182,9 +182,9 @@ $tenants = $stmt->fetchAll();
         <div class="card p-3 stat-card warning">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-muted small fw-semibold text-uppercase">Belum Lunas & Sebagian</span>
+                    <span class="text-muted small fw-semibold text-uppercase">Belum Bayar & Sebagian</span>
                     <h3 class="fw-bold my-1 text-warning"><?= ($belumBayar + $bayarSebagian) ?></h3>
-                    <small class="text-secondary"><i class="fa-solid fa-clock-rotate-left me-1"></i><?= $bayarSebagian ?> DP &bull; <?= $graceCount ?> tagihan biasa dalam H-H+4</small>
+                    <small class="text-secondary"><i class="fa-solid fa-clock-rotate-left me-1"></i><?= $belumBayar ?> belum bayar &bull; <?= $bayarSebagian ?> DP valid, belum lunas</small>
                 </div>
                 <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning fs-3">
                     <i class="fa-solid fa-file-invoice-dollar"></i>
@@ -198,7 +198,7 @@ $tenants = $stmt->fetchAll();
                 <div>
                     <span class="text-muted small fw-semibold text-uppercase">Menunggak</span>
                     <h3 class="fw-bold my-1 text-danger"><?= $overdueCount ?></h3>
-                    <small class="text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>DP lewat 2 bulan / biasa mulai H+5</small>
+                    <small class="text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>DP lewat 2 bulan atau belum bayar mulai H+5</small>
                 </div>
                 <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger fs-3">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
