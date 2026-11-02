@@ -48,7 +48,7 @@ $search = trim($_GET['search'] ?? '');
 
 $today = date('Y-m-d');
 $h2Date = date('Y-m-d', strtotime('+2 days'));
-// Sesuai aturan: Status belum bayar dimundurin jadi hari H sampai H+4, seterusnya (mulai H+5) dianggap menunggak
+// Tagihan biasa memiliki toleransi sampai H+4; DP memiliki batas pelunasan maksimal 2 bulan.
 $overdueCutoff = date('Y-m-d', strtotime('-4 days'));
 
 // 1. Statistik Ringkasan
@@ -64,7 +64,7 @@ $stmtOverdue = $pdo->prepare("SELECT COUNT(*) FROM tenants
 $stmtOverdue->execute([$today, $overdueCutoff]);
 $overdueCount = (int)$stmtOverdue->fetchColumn();
 
-// Belum Bayar dalam masa toleransi Hari H s/d H+4
+// Belum bayar biasa dalam masa toleransi Hari H s/d H+4
 $stmtGrace = $pdo->prepare("SELECT COUNT(*) FROM tenants WHERE payment_status = 'belum_bayar' AND due_date >= ? AND due_date <= ?");
 $stmtGrace->execute([$overdueCutoff, $today]);
 $graceCount = (int)$stmtGrace->fetchColumn();
@@ -134,7 +134,7 @@ $tenants = $stmt->fetchAll();
     <div class="flex-grow-1">
         <h6 class="mb-1 fw-bold text-dark">Pemberitahuan Tenggat Pembayaran Kos!</h6>
         <div class="small text-secondary">
-            Terdapat <strong><?= $overdueCount ?></strong> kamar yang menunggak (> H+4), 
+            Terdapat <strong><?= $overdueCount ?></strong> penghuni yang menunggak (DP melewati 2 bulan atau tagihan biasa > H+4), 
             <strong><?= $graceCount ?></strong> kamar dalam periode <strong>Hari H s/d H+4</strong>, 
             dan <strong><?= $bayarSebagian ?></strong> kamar berstatus <strong>Membayar Sebagian</strong>. 
             Anda dapat langsung mengirimkan pengingat ramah melalui tombol WhatsApp di bawah.
@@ -184,7 +184,7 @@ $tenants = $stmt->fetchAll();
                 <div>
                     <span class="text-muted small fw-semibold text-uppercase">Belum Lunas & Sebagian</span>
                     <h3 class="fw-bold my-1 text-warning"><?= ($belumBayar + $bayarSebagian) ?></h3>
-                    <small class="text-secondary"><i class="fa-solid fa-clock-rotate-left me-1"></i><?= $bayarSebagian ?> sebagian &bull; <?= $graceCount ?> Hari H-H+4</small>
+                    <small class="text-secondary"><i class="fa-solid fa-clock-rotate-left me-1"></i><?= $bayarSebagian ?> DP &bull; <?= $graceCount ?> tagihan biasa dalam H-H+4</small>
                 </div>
                 <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning fs-3">
                     <i class="fa-solid fa-file-invoice-dollar"></i>
@@ -196,9 +196,9 @@ $tenants = $stmt->fetchAll();
         <div class="card p-3 stat-card danger">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-muted small fw-semibold text-uppercase">Menunggak (> H+4)</span>
+                    <span class="text-muted small fw-semibold text-uppercase">Menunggak</span>
                     <h3 class="fw-bold my-1 text-danger"><?= $overdueCount ?></h3>
-                    <small class="text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>Mulai H+5 ke atas</small>
+                    <small class="text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>DP lewat 2 bulan / biasa mulai H+5</small>
                 </div>
                 <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger fs-3">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
@@ -222,10 +222,10 @@ $tenants = $stmt->fetchAll();
                         <i class="fa-solid fa-bell me-1"></i> Perlu Ditagih (<?= $urgentCount ?>)
                     </a>
                     <a href="index.php?filter=overdue" class="btn <?= $filter === 'overdue' ? 'btn-danger' : 'btn-outline-danger' ?>">
-                        Menunggak (> H+4) (<?= $overdueCount ?>)
+                        Menunggak (<?= $overdueCount ?>)
                     </a>
                     <a href="index.php?filter=grace" class="btn <?= $filter === 'grace' ? 'btn-warning text-dark' : 'btn-outline-warning text-dark' ?>">
-                        Hari H s/d H+4 (<?= $graceCount ?>)
+                        Tagihan Biasa H s/d H+4 (<?= $graceCount ?>)
                     </a>
                     <a href="index.php?filter=partial" class="btn <?= $filter === 'partial' ? 'btn-info text-dark fw-bold' : 'btn-outline-info text-dark' ?>">
                         Membayar Sebagian (<?= $bayarSebagian ?>)
