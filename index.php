@@ -135,6 +135,10 @@ if ($timelineTenants) {
     $timelineEnd->modify('first day of next month');
 }
 $timelineTotalDays = max(1, (int)$timelineStart->diff($timelineEnd)->days);
+$timelineToday = new DateTime('today');
+$timelineTodayOffset = $timelineToday < $timelineStart
+    ? null
+    : ($timelineToday >= $timelineEnd ? null : (int)$timelineStart->diff($timelineToday)->days);
 $timelineMonths = [];
 $timelineCursor = clone $timelineStart;
 $timelineMonthCount = max(1, ((int)$timelineStart->diff($timelineEnd)->y * 12) + (int)$timelineStart->diff($timelineEnd)->m);
@@ -251,6 +255,11 @@ for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
                         <?php foreach ($timelineMonths as $month): ?>
                             <div class="timeline-month"><?= htmlspecialchars(formatTanggalIndonesia($month->format('Y-m-01'))) ?></div>
                         <?php endforeach; ?>
+                        <?php if ($timelineTodayOffset !== null): ?>
+                            <span class="timeline-today-line" style="left: <?= ($timelineTodayOffset / $timelineTotalDays) * 100 ?>%;">
+                                <span class="timeline-today-label">Hari ini</span>
+                            </span>
+                        <?php endif; ?>
                     </div>
                     <?php foreach ($timelineTenants as $timelineTenant): ?>
                         <?php
@@ -279,6 +288,9 @@ for ($monthIndex = 0; $monthIndex < $timelineMonthCount; $monthIndex++) {
                             <?php foreach ($timelineMonths as $month): ?>
                                 <span class="timeline-column"></span>
                             <?php endforeach; ?>
+                            <?php if ($timelineTodayOffset !== null): ?>
+                                <span class="timeline-today-line" style="left: <?= ($timelineTodayOffset / $timelineTotalDays) * 100 ?>%;"></span>
+                            <?php endif; ?>
                             <?php if ($barEnd > 0 && $barStart < $timelineTotalDays): ?>
                                 <span class="timeline-bar <?= $barClass ?>" style="left: <?= ($barStart / $timelineTotalDays) * 100 ?>%; width: <?= ($barWidth / $timelineTotalDays) * 100 ?>%;" title="<?= htmlspecialchars(formatTanggalIndonesia($timelineTenant['start_date']) . ' - ' . formatTanggalIndonesia($timelineTenant['due_date'])) ?>"></span>
                             <?php endif; ?>

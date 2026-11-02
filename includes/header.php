@@ -176,6 +176,30 @@ function formatTanggalIndonesia(string $date): string {
         .timeline-column {
             border-left: 1px solid #e2e8f0;
         }
+        .timeline-today-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            z-index: 2;
+            background: #2563eb;
+            pointer-events: none;
+        }
+        .timeline-months .timeline-today-line {
+            bottom: 0;
+        }
+        .timeline-today-label {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: #2563eb;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
         .timeline-bar {
             position: absolute;
             top: 17px;
