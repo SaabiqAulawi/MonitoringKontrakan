@@ -53,11 +53,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
         $paidAmount = 0;
     }
     $notes = trim($_POST['notes'] ?? '');
+    $minimumDp = minimumDownPayment($price);
 
     if (!$unit || empty($name)) {
         $message = "Unit dan nama wajib diisi!";
         $alertType = "danger";
+    } elseif ($status === 'bayar_sebagian' && $paidAmount < $minimumDp) {
+        $message = 'DP minimal Rp ' . number_format($minimumDp, 0, ',', '.') . ' (2/3 dari total tarif).';
+        $alertType = "danger";
     } else {
+        if ($status === 'bayar_sebagian') {
+            $maximumSettlementDate = date('Y-m-d', strtotime('+2 months'));
+            if ($dueDate > $maximumSettlementDate) {
+                $dueDate = $maximumSettlementDate;
+            }
+        }
         $stmtUnitTenant = $pdo->prepare('SELECT id FROM tenants WHERE unit_id = ? AND id != ?');
         $stmtUnitTenant->execute([$unitId, $id]);
         if ($stmtUnitTenant->fetch()) {

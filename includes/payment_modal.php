@@ -66,7 +66,7 @@
                             <input type="number" name="amount" id="amountInput<?= $t['id'] ?>" class="form-control form-control-sm" 
                                 value="<?= $t['payment_status'] === 'bayar_sebagian' ? (int)($t['paid_amount'] ?: ($t['rent_price'] / 2)) : (int)$t['rent_price'] ?>" required>
                             <small class="text-muted" id="amountHint<?= $t['id'] ?>" style="font-size: 0.7rem;">
-                                <?= $t['payment_status'] === 'bayar_sebagian' ? 'Nominal yang baru dibayar' : 'Nominal tagihan' ?>
+                                <?= $t['payment_status'] === 'bayar_sebagian' ? 'Nominal DP (minimal Rp ' . number_format(minimumDownPayment((float)$t['rent_price']), 0, ',', '.') . ')' : 'Nominal tagihan' ?>
                             </small>
                         </div>
                     </div>
@@ -80,6 +80,7 @@
                         </div>
                         <small class="text-muted d-block ps-4">
                             Periode: <?= htmlspecialchars(rentPeriodLabel($t['rent_period'] ?? 'bulanan')) ?> ·
+                            Minimal DP 2/3 tarif ·
                             Tenggat saat ini: <?= date('d M Y', strtotime($t['due_date'])) ?> &rarr; Akan menjadi: <strong><?= date('d M Y', strtotime($t['due_date'] . ' +' . rentPeriodMonths($t['rent_period'] ?? 'bulanan') . ' months')) ?></strong>
                         </small>
                     </div>
@@ -113,7 +114,7 @@ function handleStatusChange<?= $t['id'] ?>(status) {
         chk.checked = true;
         if (hint) hint.innerText = 'Nominal lunas sewa';
     } else if (status === 'bayar_sebagian') {
-        amt.value = currentPaid > 0 ? currentPaid : Math.round(rent / 2);
+        amt.value = currentPaid > 0 ? currentPaid : Math.ceil(rent * 2 / 3);
         chk.checked = false;
         if (hint) hint.innerText = 'Nominal yang baru dibayar';
     } else {

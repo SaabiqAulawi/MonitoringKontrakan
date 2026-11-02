@@ -225,3 +225,7 @@ function rentPeriodLabel(string $period): string {
         default => 'Perbulan',
     };
 }
+
+function minimumDownPayment(float $rentPrice): float {
+    return ceil($rentPrice * 2 / 3);
+}

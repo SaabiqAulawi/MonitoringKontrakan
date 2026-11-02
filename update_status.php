@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dueDate = $tenant['due_date'];
         $paidAt = $tenant['last_paid_at'];
         $rentPrice = (float)$tenant['rent_price'];
+        $minimumDp = minimumDownPayment($rentPrice);
 
         // Pengaturan nominal dan status
         if ($newStatus === 'sudah_bayar') {
@@ -45,11 +46,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $notes = "Pembayaran lunas sebesar Rp " . number_format($paidAmount, 0, ',', '.');
             }
         } elseif ($newStatus === 'bayar_sebagian') {
+            if ($amount < $minimumDp) {
+                http_response_code(422);
+                exit('DP minimal Rp ' . number_format($minimumDp, 0, ',', '.') . ' (2/3 dari total tarif).');
+            }
             $paidAt = date('Y-m-d H:i:s');
             $paidAmount = $amount;
-            if ($advanceDue === 1) {
-                $dueDate = date('Y-m-d', strtotime($dueDate . ' +' . rentPeriodMonths($tenant['rent_period'] ?? 'bulanan') . ' months'));
-            }
+            $maximumSettlementDate = date('Y-m-d', strtotime('+2 months'));
+            $dueDate = $maximumSettlementDate;
             $sisa = max(0, $rentPrice - $paidAmount);
             if (empty($notes)) {
                 $notes = "Membayar sebagian: Baru bayar Rp " . number_format($paidAmount, 0, ',', '.') . " (Sisa: Rp " . number_format($sisa, 0, ',', '.') . ")";
