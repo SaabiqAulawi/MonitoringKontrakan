@@ -104,6 +104,12 @@ function parseTenantRow(array $row, array $headerMap, PDO $pdo): array {
     if (empty($data['identity_number'])) {
         $data['identity_number'] = null;
     }
+    if ($data['payment_status'] === 'bayar_sebagian') {
+        $data['down_payment_date'] = $data['start_date'];
+        $data['due_date'] = downPaymentDeadline($data['start_date']);
+    } else {
+        $data['down_payment_date'] = null;
+    }
     return $data;
 }
 
@@ -191,10 +197,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
                     $stmtCheck = $pdo->prepare("SELECT id, name, room_number FROM tenants WHERE identity_number = ?");
                     $stmtInsert = $pdo->prepare("INSERT INTO tenants (
                         room_number, name, identity_number, phone, ktp_address, landlord_name,
-                        rent_price, paid_amount, rent_period, start_date, due_date, payment_status, notes
+                        rent_price, paid_amount, rent_period, start_date, due_date, payment_status, down_payment_date, notes
                     ) VALUES (
                         :room_number, :name, :identity_number, :phone, :ktp_address, :landlord_name,
-                        :rent_price, :paid_amount, :rent_period, :start_date, :due_date, :payment_status, :notes
+                        :rent_price, :paid_amount, :rent_period, :start_date, :due_date, :payment_status, :down_payment_date, :notes
                     )");
 
                     for ($i = $startIdx; $i < count($rows); $i++) {
@@ -240,6 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file'])) {
                                 ':start_date' => $data['start_date'],
                                 ':due_date' => $data['due_date'],
                                 ':payment_status' => $data['payment_status'],
+                                ':down_payment_date' => $data['down_payment_date'],
                                 ':notes' => $data['notes']
                             ]);
                             $insertedCount++;

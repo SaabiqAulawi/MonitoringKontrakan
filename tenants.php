@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
     } elseif ($status === 'belum_bayar') {
         $paidAmount = 0;
     }
+    $downPaymentDate = $status === 'bayar_sebagian' ? $startDate : null;
     $notes = trim($_POST['notes'] ?? '');
     $minimumDp = minimumDownPayment($price);
 
@@ -68,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
         $alertType = "danger";
     } else {
         if ($status === 'bayar_sebagian') {
-            $maximumSettlementDate = date('Y-m-d', strtotime('+2 months'));
+            $maximumSettlementDate = downPaymentDeadline($startDate);
             if ($dueDate > $maximumSettlementDate) {
                 $dueDate = $maximumSettlementDate;
             }
@@ -89,8 +90,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
                 $stmtUp = $pdo->prepare("UPDATE tenants SET 
                     unit_id = ?, room_number = ?, name = ?, identity_number = ?, phone = ?, ktp_address = ?,
                     landlord_name = ?, rent_price = ?, paid_amount = ?, rent_period = ?, start_date = ?, due_date = ?,
-                    payment_status = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
-                $stmtUp->execute([$unitId, $room, $name, $nik, $phone, $ktpAddress, $landlord, $price, $paidAmount, $period, $startDate, $dueDate, $status, $notes, $id]);
+                    payment_status = ?, down_payment_date = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+                $stmtUp->execute([$unitId, $room, $name, $nik, $phone, $ktpAddress, $landlord, $price, $paidAmount, $period, $startDate, $dueDate, $status, $downPaymentDate, $notes, $id]);
                 $message = "Data penghuni berhasil diperbarui.";
                 $alertType = "success";
             }
@@ -105,8 +106,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_id'])) {
                 $stmtIns = $pdo->prepare("INSERT INTO tenants (
                     unit_id, room_number, name, identity_number, phone, ktp_address, landlord_name,
                     rent_price, paid_amount, rent_period, start_date, due_date, payment_status, notes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmtIns->execute([$unitId, $room, $name, $nik, $phone, $ktpAddress, $landlord, $price, $paidAmount, $period, $startDate, $dueDate, $status, $notes]);
+                    , down_payment_date
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmtIns->execute([$unitId, $room, $name, $nik, $phone, $ktpAddress, $landlord, $price, $paidAmount, $period, $startDate, $dueDate, $status, $notes, $downPaymentDate]);
                 $message = "Penghuni baru berhasil ditambahkan.";
                 $alertType = "success";
             }

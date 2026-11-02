@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $oldStatus = $tenant['payment_status'];
         $dueDate = $tenant['due_date'];
         $paidAt = $tenant['last_paid_at'];
+        $downPaymentDate = $tenant['down_payment_date'] ?? null;
         $rentPrice = (float)$tenant['rent_price'];
         $minimumDp = minimumDownPayment($rentPrice);
 
@@ -52,8 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $paidAt = date('Y-m-d H:i:s');
             $paidAmount = $amount;
-            $maximumSettlementDate = date('Y-m-d', strtotime('+2 months'));
-            $dueDate = $maximumSettlementDate;
+            $downPaymentDate = $tenant['start_date'];
+            $dueDate = downPaymentDeadline($tenant['start_date']);
             $sisa = max(0, $rentPrice - $paidAmount);
             if (empty($notes)) {
                 $notes = "Membayar sebagian: Baru bayar Rp " . number_format($paidAmount, 0, ',', '.') . " (Sisa: Rp " . number_format($sisa, 0, ',', '.') . ")";
@@ -61,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Belum bayar
             $paidAmount = 0;
+            $downPaymentDate = null;
             if (empty($notes)) {
                 $notes = "Perubahan status ke Belum Bayar";
             }
@@ -72,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             paid_amount = :paid_amount,
             due_date = :due_date,
             last_paid_at = :last_paid_at,
+            down_payment_date = :down_payment_date,
             updated_at = CURRENT_TIMESTAMP
             WHERE id = :id");
         $stmtUpdate->execute([
@@ -79,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':paid_amount' => $paidAmount,
             ':due_date' => $dueDate,
             ':last_paid_at' => $paidAt,
+            ':down_payment_date' => $downPaymentDate,
             ':id' => $tenantId
         ]);
 

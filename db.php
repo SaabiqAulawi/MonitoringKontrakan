@@ -31,6 +31,7 @@ try {
         due_date DATE NOT NULL,
         payment_status VARCHAR(20) DEFAULT 'belum_bayar',
         last_paid_at DATETIME NULL,
+        down_payment_date DATE NULL,
         notes TEXT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -45,6 +46,9 @@ try {
     if (!in_array('unit_id', $colNames)) {
         $pdo->exec("ALTER TABLE tenants ADD COLUMN unit_id INTEGER NULL");
     }
+    if (!in_array('down_payment_date', $colNames)) {
+        $pdo->exec("ALTER TABLE tenants ADD COLUMN down_payment_date DATE NULL");
+    }
     $identityColumn = null;
     foreach ($cols as $column) {
         if ($column['name'] === 'identity_number') {
@@ -55,6 +59,7 @@ try {
     if ($identityColumn && (int)$identityColumn['notnull'] === 1) {
         $pdo->beginTransaction();
         try {
+            $downPaymentSelect = in_array('down_payment_date', $colNames, true) ? 'down_payment_date' : 'NULL';
             $pdo->exec("CREATE TABLE tenants_migrating (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 room_number VARCHAR(100) NOT NULL,
@@ -70,6 +75,7 @@ try {
                 due_date DATE NOT NULL,
                 payment_status VARCHAR(20) DEFAULT 'belum_bayar',
                 last_paid_at DATETIME NULL,
+                down_payment_date DATE NULL,
                 notes TEXT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -78,10 +84,10 @@ try {
             $pdo->exec("INSERT INTO tenants_migrating
                 (id, room_number, name, identity_number, phone, ktp_address, landlord_name,
                  rent_price, paid_amount, rent_period, start_date, due_date, payment_status,
-                 last_paid_at, notes, created_at, updated_at, unit_id)
+                 last_paid_at, down_payment_date, notes, created_at, updated_at, unit_id)
                 SELECT id, room_number, name, NULLIF(identity_number, ''), phone, ktp_address,
                  landlord_name, rent_price, paid_amount, rent_period, start_date, due_date,
-                 payment_status, last_paid_at, notes, created_at, updated_at, unit_id
+                 payment_status, last_paid_at, {$downPaymentSelect}, notes, created_at, updated_at, unit_id
                 FROM tenants");
             $pdo->exec("DROP TABLE tenants");
             $pdo->exec("ALTER TABLE tenants_migrating RENAME TO tenants");
@@ -197,6 +203,11 @@ try {
     ) WHERE unit_id IS NULL");
     $pdo->exec("UPDATE units SET unit_status = 'terisi'
         WHERE EXISTS (SELECT 1 FROM tenants WHERE tenants.unit_id = units.id)");
+    $pdo->exec("UPDATE tenants
+        SET down_payment_date = start_date,
+            due_date = date(start_date, '+2 months')
+        WHERE payment_status = 'bayar_sebagian'
+          AND down_payment_date IS NULL");
 
 } catch (PDOException $e) {
     die("Koneksi Database Gagal: " . $e->getMessage());
@@ -228,4 +239,8 @@ function rentPeriodLabel(string $period): string {
 
 function minimumDownPayment(float $rentPrice): float {
     return ceil($rentPrice * 2 / 3);
+}
+
+function downPaymentDeadline(string $startDate): string {
+    return date('Y-m-d', strtotime($startDate . ' +2 months'));
 }

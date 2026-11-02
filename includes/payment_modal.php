@@ -81,7 +81,11 @@
                         <small class="text-muted d-block ps-4">
                             Periode: <?= htmlspecialchars(rentPeriodLabel($t['rent_period'] ?? 'bulanan')) ?> ·
                             Minimal DP 2/3 tarif ·
-                            Tenggat saat ini: <?= date('d M Y', strtotime($t['due_date'])) ?> &rarr; Akan menjadi: <strong><?= date('d M Y', strtotime($t['due_date'] . ' +' . rentPeriodMonths($t['rent_period'] ?? 'bulanan') . ' months')) ?></strong>
+                            <?php if ($t['payment_status'] === 'bayar_sebagian'): ?>
+                                Batas pelunasan DP: <strong><?= date('d M Y', strtotime(downPaymentDeadline($t['start_date']))) ?></strong>
+                            <?php else: ?>
+                                Tenggat saat ini: <?= date('d M Y', strtotime($t['due_date'])) ?> &rarr; Akan menjadi: <strong><?= date('d M Y', strtotime($t['due_date'] . ' +' . rentPeriodMonths($t['rent_period'] ?? 'bulanan') . ' months')) ?></strong>
+                            <?php endif; ?>
                         </small>
                     </div>
 
