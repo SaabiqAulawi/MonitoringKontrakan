@@ -84,8 +84,6 @@ $units = $pdo->query('SELECT * FROM units ORDER BY unit_code')->fetchAll();
 <label class="form-label">Foto Unit</label><input type="file" accept=".jpg,.jpeg,.png,.webp" class="form-control mb-3" name="photo">
 <button class="btn btn-primary w-100">Simpan Unit</button>
 </form>
-<?php else: ?>
-<div class="text-center text-muted py-4">Gunakan tombol <strong>Tambah Unit</strong> untuk menambahkan unit baru.</div>
 <?php endif; ?>
 </div></div></div>
 <div class="<?= $edit ? 'col-lg-8' : 'col-lg-12' ?>"><div class="card"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Unit</th><th>Alamat</th><th>Spesifikasi</th><th>Status</th><th>Kondisi</th><th></th></tr></thead><tbody>
