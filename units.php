@@ -62,8 +62,8 @@ $units = $pdo->query('SELECT * FROM units ORDER BY unit_code')->fetchAll();
     <a href="tambah_unit.php" class="btn btn-primary"><i class="fa-solid fa-house me-1"></i>Tambah Unit</a>
 </div>
 <div class="row g-4">
-<div class="col-lg-4"><div class="card"><div class="card-body">
 <?php if ($edit): ?>
+<div class="col-lg-4"><div class="card"><div class="card-body">
 <h5 class="fw-bold"><?= $edit ? 'Edit Unit' : 'Tambah Unit' ?></h5>
 <form method="post" enctype="multipart/form-data">
 <?= csrfInput() ?>
@@ -84,8 +84,8 @@ $units = $pdo->query('SELECT * FROM units ORDER BY unit_code')->fetchAll();
 <label class="form-label">Foto Unit</label><input type="file" accept=".jpg,.jpeg,.png,.webp" class="form-control mb-3" name="photo">
 <button class="btn btn-primary w-100">Simpan Unit</button>
 </form>
-<?php endif; ?>
 </div></div></div>
+<?php endif; ?>
 <div class="<?= $edit ? 'col-lg-8' : 'col-lg-12' ?>"><div class="card"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Unit</th><th>Alamat</th><th>Spesifikasi</th><th>Status</th><th>Kondisi</th><th></th></tr></thead><tbody>
 <?php foreach ($units as $unit): ?><tr><td class="fw-bold"><?= htmlspecialchars($unit['unit_code']) ?></td><td><?= nl2br(htmlspecialchars($unit['address'])) ?></td><td><?= (int)$unit['bedrooms'] ?> kamar · <?= (int)$unit['bathrooms'] ?> toilet · <?= (int)$unit['floors'] ?> lantai<br><small><?= htmlspecialchars($unit['area_sqm']) ?> m²</small></td><td><span class="badge <?= $unit['unit_status'] === 'terisi' ? 'bg-primary' : ($unit['unit_status'] === 'kosong' ? 'bg-secondary' : 'bg-warning text-dark') ?>"><?= htmlspecialchars(str_replace('_', ' ', ucfirst($unit['unit_status']))) ?></span></td><td><span class="badge <?= $unit['condition_status'] === 'baik' ? 'bg-success' : 'bg-warning text-dark' ?>"><?= htmlspecialchars(str_replace('_', ' ', ucfirst($unit['condition_status']))) ?></span></td><td class="text-nowrap"><a class="btn btn-sm btn-outline-primary" href="?edit=<?= $unit['id'] ?>">Edit</a><form method="post" class="d-inline" onsubmit="return confirm('Hapus unit ini?')"><?= csrfInput() ?><input type="hidden" name="delete_id" value="<?= $unit['id'] ?>"><button class="btn btn-sm btn-outline-danger">Hapus</button></form></td></tr><?php endforeach; ?>
 </tbody></table></div></div></div></div>
