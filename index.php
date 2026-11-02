@@ -271,8 +271,8 @@ $tenants = $stmt->fetchAll();
             <a href="upload.php" class="btn btn-sm btn-outline-primary">
                 <i class="fa-solid fa-file-excel me-1"></i> Upload .xlsx
             </a>
-            <a href="tenants.php?action=add" class="btn btn-sm btn-primary">
-                <i class="fa-solid fa-user-plus me-1"></i> Tambah Manual
+            <a href="tambah_tenant.php" class="btn btn-sm btn-primary">
+                <i class="fa-solid fa-user-plus me-1"></i> Tambah Penghuni
             </a>
         </div>
     </div>

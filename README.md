@@ -1,4 +1,4 @@
-# 🏢 Monitoring Kontrakan - Residential Tenant & Billing Monitoring System
+# 🏢 Monitoring Kontrakan - Residential Occupant & Billing Monitoring System
 
 ## Konfigurasi awal
 
@@ -7,21 +7,21 @@ Atur `APP_ADMIN_PASSWORD` dan `APP_OWNER_PASSWORD` pada environment server sebel
 akses pertama. Masing-masing harus minimal 12 karakter; kata sandi tidak disimpan
 di source code atau README. Setiap perubahan pembayaran mencatat akun yang melakukan perubahan.
 
-Kedua role yang sudah login dapat menambah, mengedit, dan menghapus data tenant/unit,
-serta mengubah status pembayaran tenant.
+Kedua role yang sudah login dapat menambah, mengedit, dan menghapus data penghuni/unit,
+serta mengubah status pembayaran penghuni.
 
 ## Model data terbaru
 
-Selain data tenant dan pembayaran lama, aplikasi membuat tabel `units` untuk alamat, kondisi, foto, jumlah kamar/toilet, luas, dan jumlah lantai. Tabel `tenant_contacts` mendukung lebih dari satu kontak per tenant. Data lama dimigrasikan ke unit berdasarkan nilai `room_number` tanpa menghapus riwayat.
+Selain data penghuni dan pembayaran lama, aplikasi membuat tabel `units` untuk alamat, kondisi, foto, jumlah kamar/toilet, luas, dan jumlah lantai. Tabel `tenant_contacts` mendukung lebih dari satu kontak per penghuni. Data lama dimigrasikan ke unit berdasarkan nilai `room_number` tanpa menghapus riwayat.
 
 Database SQLite berada di `data/kos.db` secara default. Untuk deployment produksi,
 set `APP_DATA_DIR` ke folder di luar document root; sebagai perlindungan tambahan,
 folder `data/` diblokir dari akses web melalui `.htaccess`. Jangan menghapus aturan `.gitignore` yang mengecualikan database,
 foto, upload, spreadsheet berisi data penghuni, dan konfigurasi lokal.
 
-Periode tarif sewa tenant tersedia dalam pilihan `Perbulan`, `Per 6 Bulan`, atau `Pertahun`. Perpanjangan tenggat pembayaran mengikuti periode yang dipilih.
-NIK/No. KTP tenant bersifat opsional; jika diisi, nilainya tetap digunakan untuk mencegah data tenant ganda.
-Penambahan tenant dan unit tersedia pada halaman terpisah melalui menu **Tambah Tenant**
+Periode tarif sewa penghuni tersedia dalam pilihan `Perbulan`, `Per 6 Bulan`, atau `Pertahun`. Perpanjangan tenggat pembayaran mengikuti periode yang dipilih.
+NIK/No. KTP penghuni bersifat opsional; jika diisi, nilainya tetap digunakan untuk mencegah data penghuni ganda.
+Penambahan penghuni dan unit tersedia pada halaman terpisah melalui menu **Tambah Penghuni**
 dan **Tambah Unit**; halaman **Penghuni** dan **Unit** digunakan untuk melihat, mengedit,
 dan menghapus data yang sudah ada.
 

@@ -20,8 +20,8 @@ $tenants = $pdo->query('SELECT id, name, room_number FROM tenants ORDER BY name'
 $contacts = $pdo->query('SELECT c.*, t.name, t.room_number FROM tenant_contacts c JOIN tenants t ON t.id=c.tenant_id ORDER BY t.name, c.id DESC')->fetchAll();
 ?>
 <?php if ($message): ?><div class="alert alert-success"><?= htmlspecialchars($message) ?></div><?php endif; ?>
-<div class="row g-4"><div class="col-lg-4"><div class="card"><div class="card-body"><h5 class="fw-bold">Tambah Kontak Tenant</h5>
-<form method="post"><?= csrfInput() ?><label class="form-label">Tenant</label><select class="form-select mb-2" name="tenant_id" required><option value="">Pilih tenant</option><?php foreach ($tenants as $tenant): ?><option value="<?= $tenant['id'] ?>"><?= htmlspecialchars($tenant['name'] . ' · ' . $tenant['room_number']) ?></option><?php endforeach; ?></select>
+<div class="row g-4"><div class="col-lg-4"><div class="card"><div class="card-body"><h5 class="fw-bold">Tambah Kontak Penghuni</h5>
+<form method="post"><?= csrfInput() ?><label class="form-label">Penghuni</label><select class="form-select mb-2" name="tenant_id" required><option value="">Pilih penghuni</option><?php foreach ($tenants as $tenant): ?><option value="<?= $tenant['id'] ?>"><?= htmlspecialchars($tenant['name'] . ' · ' . $tenant['room_number']) ?></option><?php endforeach; ?></select>
 <label class="form-label">Nama Kontak</label><input class="form-control mb-2" name="contact_name" placeholder="Contoh: Suami / Istri">
 <label class="form-label">Nomor WhatsApp</label><input class="form-control mb-2" name="phone" required placeholder="08xxxxxxxxxx">
 <label class="form-label">Hubungan</label><input class="form-control mb-3" name="relationship" placeholder="Keluarga / penanggung jawab">

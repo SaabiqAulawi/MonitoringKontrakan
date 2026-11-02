@@ -5,7 +5,7 @@ $units = $pdo->query("SELECT id, unit_code, address, unit_status FROM units WHER
 <div class="row justify-content-center">
     <div class="col-lg-7">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold mb-0"><i class="fa-solid fa-user-plus text-primary me-2"></i>Tambah Tenant</h4>
+            <h4 class="fw-bold mb-0"><i class="fa-solid fa-user-plus text-primary me-2"></i>Tambah Penghuni</h4>
             <a href="tenants.php" class="btn btn-outline-secondary btn-sm">Kembali</a>
         </div>
         <?php if (!$units): ?>
@@ -32,7 +32,7 @@ $units = $pdo->query("SELECT id, unit_code, address, unit_status FROM units WHER
                 <div class="mb-3"><label class="form-label fw-bold">Alamat Asal KTP</label><textarea name="ktp_address" class="form-control" rows="2"></textarea></div>
                 <div class="mb-3"><label class="form-label fw-bold">Pemilik Kontrakan</label><input name="landlord_name" class="form-control" value="<?= htmlspecialchars(getSetting($pdo, 'landlord_name')) ?>"></div>
                 <div class="mb-3"><label class="form-label fw-bold">Catatan</label><textarea name="notes" class="form-control" rows="2"></textarea></div>
-                <button class="btn btn-primary w-100 fw-bold"><i class="fa-solid fa-floppy-disk me-1"></i>Simpan Tenant</button>
+                <button class="btn btn-primary w-100 fw-bold"><i class="fa-solid fa-floppy-disk me-1"></i>Simpan Penghuni</button>
             </form>
         </div></div>
         <?php endif; ?>
