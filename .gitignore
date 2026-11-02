@@ -17,7 +17,8 @@ data/*.xls
 !Format_Penghuni_Kost_Kontrakan.xlsx
 *.xls
 *.md
-
+.txt
+*.csv
 # Local secrets and environment configuration
 .env
 .env.*
