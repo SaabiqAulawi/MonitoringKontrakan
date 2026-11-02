@@ -115,24 +115,15 @@ $timelineTenants = $pdo->query("SELECT t.room_number, t.name, u.address, t.start
     LEFT JOIN units u ON u.id = t.unit_id
     ORDER BY t.start_date, t.room_number, t.name")->fetchAll();
 $timelineStart = new DateTime('first day of this month');
+$timelineStart->modify('-2 months');
 $timelineEnd = clone $timelineStart;
-$timelineEnd->modify('+12 months');
-if ($timelineTenants) {
-    $timelineStart = new DateTime($timelineTenants[0]['start_date']);
-    $timelineStart->modify('first day of this month');
-    $timelineEnd = new DateTime($timelineTenants[0]['due_date']);
-    foreach ($timelineTenants as $timelineTenant) {
-        $contractStart = new DateTime($timelineTenant['start_date']);
-        $contractEnd = new DateTime($timelineTenant['due_date']);
-        if ($contractStart < $timelineStart) {
-            $timelineStart = clone $contractStart;
-            $timelineStart->modify('first day of this month');
-        }
-        if ($contractEnd > $timelineEnd) {
-            $timelineEnd = clone $contractEnd;
-        }
+$timelineEnd->modify('+14 months');
+foreach ($timelineTenants as $timelineTenant) {
+    $contractEnd = new DateTime($timelineTenant['due_date']);
+    if ($contractEnd > $timelineEnd) {
+        $timelineEnd = clone $contractEnd;
+        $timelineEnd->modify('first day of next month');
     }
-    $timelineEnd->modify('first day of next month');
 }
 $timelineTotalDays = max(1, (int)$timelineStart->diff($timelineEnd)->days);
 $timelineToday = new DateTime('today');
