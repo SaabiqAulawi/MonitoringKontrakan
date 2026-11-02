@@ -3,17 +3,13 @@ require_once __DIR__ . '/includes/header.php';
 $message = '';
 $edit = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
-    verifyCsrf();
-    $stmt = $pdo->prepare('DELETE FROM units WHERE id = ?');
-    $stmt->execute([(int)$_POST['delete_id']]);
-    $message = 'Unit berhasil dihapus.';
-}
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['delete_id'])) {
-        // Deletion was handled above.
-    } else {
     verifyCsrf();
+    if (isset($_POST['delete_id'])) {
+        $stmt = $pdo->prepare('DELETE FROM units WHERE id = ?');
+        $stmt->execute([(int)$_POST['delete_id']]);
+        $message = 'Unit berhasil dihapus.';
+    } else {
     $id = (int)($_POST['id'] ?? 0);
     $code = trim($_POST['unit_code'] ?? '');
     $address = trim($_POST['address'] ?? '');
@@ -21,7 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $allowedUnitStatuses = ['terisi', 'kosong', 'dalam_perbaikan', 'renovasi'];
     if (!in_array($unitStatus, $allowedUnitStatuses, true)) {
         $unitStatus = 'kosong';
-    }
     }
     $condition = trim($_POST['condition_status'] ?? 'baik');
     $notes = trim($_POST['repair_notes'] ?? '');
@@ -53,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = 'Unit berhasil ditambahkan.';
         }
     }
+    }
 }
 if (isset($_GET['edit'])) {
     $stmt = $pdo->prepare('SELECT * FROM units WHERE id=?');
@@ -62,8 +58,12 @@ if (isset($_GET['edit'])) {
 $units = $pdo->query('SELECT * FROM units ORDER BY unit_code')->fetchAll();
 ?>
 <?php if ($message): ?><div class="alert alert-info"><?= htmlspecialchars($message) ?></div><?php endif; ?>
+<div class="d-flex justify-content-end gap-2 mb-3">
+    <a href="tambah_unit.php" class="btn btn-primary"><i class="fa-solid fa-house me-1"></i>Tambah Unit</a>
+</div>
 <div class="row g-4">
 <div class="col-lg-4"><div class="card"><div class="card-body">
+<?php if ($edit): ?>
 <h5 class="fw-bold"><?= $edit ? 'Edit Unit' : 'Tambah Unit' ?></h5>
 <form method="post" enctype="multipart/form-data">
 <?= csrfInput() ?>
@@ -83,8 +83,12 @@ $units = $pdo->query('SELECT * FROM units ORDER BY unit_code')->fetchAll();
 <label class="form-label">Catatan Perbaikan</label><textarea class="form-control mb-2" name="repair_notes"><?= htmlspecialchars($edit['repair_notes'] ?? '') ?></textarea>
 <label class="form-label">Foto Unit</label><input type="file" accept=".jpg,.jpeg,.png,.webp" class="form-control mb-3" name="photo">
 <button class="btn btn-primary w-100">Simpan Unit</button>
-</form></div></div></div>
-<div class="col-lg-8"><div class="card"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Unit</th><th>Alamat</th><th>Spesifikasi</th><th>Status</th><th>Kondisi</th><th></th></tr></thead><tbody>
+</form>
+<?php else: ?>
+<div class="text-center text-muted py-4">Gunakan tombol <strong>Tambah Unit</strong> untuk menambahkan unit baru.</div>
+<?php endif; ?>
+</div></div></div>
+<div class="<?= $edit ? 'col-lg-8' : 'col-lg-12' ?>"><div class="card"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Unit</th><th>Alamat</th><th>Spesifikasi</th><th>Status</th><th>Kondisi</th><th></th></tr></thead><tbody>
 <?php foreach ($units as $unit): ?><tr><td class="fw-bold"><?= htmlspecialchars($unit['unit_code']) ?></td><td><?= nl2br(htmlspecialchars($unit['address'])) ?></td><td><?= (int)$unit['bedrooms'] ?> kamar · <?= (int)$unit['bathrooms'] ?> toilet · <?= (int)$unit['floors'] ?> lantai<br><small><?= htmlspecialchars($unit['area_sqm']) ?> m²</small></td><td><span class="badge <?= $unit['unit_status'] === 'terisi' ? 'bg-primary' : ($unit['unit_status'] === 'kosong' ? 'bg-secondary' : 'bg-warning text-dark') ?>"><?= htmlspecialchars(str_replace('_', ' ', ucfirst($unit['unit_status']))) ?></span></td><td><span class="badge <?= $unit['condition_status'] === 'baik' ? 'bg-success' : 'bg-warning text-dark' ?>"><?= htmlspecialchars(str_replace('_', ' ', ucfirst($unit['condition_status']))) ?></span></td><td class="text-nowrap"><a class="btn btn-sm btn-outline-primary" href="?edit=<?= $unit['id'] ?>">Edit</a><form method="post" class="d-inline" onsubmit="return confirm('Hapus unit ini?')"><?= csrfInput() ?><input type="hidden" name="delete_id" value="<?= $unit['id'] ?>"><button class="btn btn-sm btn-outline-danger">Hapus</button></form></td></tr><?php endforeach; ?>
 </tbody></table></div></div></div></div>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

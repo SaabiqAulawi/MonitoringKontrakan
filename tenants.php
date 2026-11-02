@@ -136,8 +136,12 @@ $tenants = $stmt->fetchAll();
     </div>
 <?php endif; ?>
 
+<div class="d-flex justify-content-end gap-2 mb-3">
+    <a href="tambah_tenant.php" class="btn btn-primary"><i class="fa-solid fa-user-plus me-1"></i>Tambah Tenant</a>
+</div>
 <div class="row g-4">
     <!-- Form Tambah / Edit Penghuni -->
+    <?php if ($editTenant): ?>
     <div class="col-lg-4">
         <div class="card shadow-sm sticky-top" style="top: 80px;">
             <div class="card-header bg-white py-3">
@@ -250,9 +254,10 @@ $tenants = $stmt->fetchAll();
             </div>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- Tabel Daftar Seluruh Penghuni -->
-    <div class="col-lg-8">
+    <div class="<?= $editTenant ? 'col-lg-8' : 'col-lg-12' ?>">
         <div class="card shadow-sm">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="mb-0 fw-bold">

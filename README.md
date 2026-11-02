@@ -21,6 +21,9 @@ foto, upload, spreadsheet berisi data penghuni, dan konfigurasi lokal.
 
 Periode tarif sewa tenant tersedia dalam pilihan `Perbulan`, `Per 6 Bulan`, atau `Pertahun`. Perpanjangan tenggat pembayaran mengikuti periode yang dipilih.
 NIK/No. KTP tenant bersifat opsional; jika diisi, nilainya tetap digunakan untuk mencegah data tenant ganda.
+Penambahan tenant dan unit tersedia pada halaman terpisah melalui menu **Tambah Tenant**
+dan **Tambah Unit**; halaman **Penghuni** dan **Unit** digunakan untuk melihat, mengedit,
+dan menghapus data yang sudah ada.
 
 Setiap unit memiliki status operasional `Terisi`, `Kosong`, `Dalam perbaikan`, atau `Renovasi`. Status ini terpisah dari kondisi fisik unit dan dapat diubah dari halaman **Unit**.
 

@@ -171,8 +171,18 @@ function formatTanggalIndonesia(string $date): string {
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link <?= $currentPage === 'tambah_tenant.php' ? 'active' : '' ?>" href="tambah_tenant.php">
+                        <i class="fa-solid fa-user-plus me-1"></i> Tambah Tenant
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link <?= $currentPage === 'units.php' ? 'active' : '' ?>" href="units.php">
                         <i class="fa-solid fa-house me-1"></i> Unit
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $currentPage === 'tambah_unit.php' ? 'active' : '' ?>" href="tambah_unit.php">
+                        <i class="fa-solid fa-house-circle-plus me-1"></i> Tambah Unit
                     </a>
                 </li>
                 <li class="nav-item">
